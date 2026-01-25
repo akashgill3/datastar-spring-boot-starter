@@ -41,7 +41,3 @@ datastar:
 ``` bash 
 ./mvnw clean verify
 ``` 
-
-## License
-
-MIT see ([LICENSE](LICENSE))
