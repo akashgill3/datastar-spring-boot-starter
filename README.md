@@ -33,10 +33,8 @@ Example:
 
 ``` yaml 
 datastar: 
-    timeout: 300
-    retry-duration: 1000
-    debug-logging: false
     max-concurrent-connections: 1000
+    debug-logging: false
 ```
 
 ## Build
