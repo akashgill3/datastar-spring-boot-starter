@@ -1,18 +1,22 @@
 # Datastar Spring Boot Starter
 
-A lightweight **Spring Boot starter** that autoconfigures a `Datastar` helper for **Server-Sent Events (SSE)** 
+A lightweight **Spring Boot starter** that autoconfigures a `Datastar` helper for **Server-Sent Events (SSE)**
 integrations, with simple event types for patching elements and signals.
 
 ## Requirements
+
 - Java **21**
 - Spring Boot **4.x**
 - Maven (or use the included Maven Wrapper)
 
 ## Install
+
 TODO
 
 ## Usage
- TODO
+
+TODO
+
 ``` java
  ``` 
 
@@ -22,7 +26,6 @@ Configure via `application.yml` / `application.properties` under the `datastar` 
 
 | Property                              | Default | Description                                                          |
 |---------------------------------------|--------:|----------------------------------------------------------------------|
-| `datastar.timeout`                    |   `300` | SSE timeout (seconds)                                                |
 | `datastar.max-concurrent-connections` |  `1000` | Max number of concurrent SSE connections                             |
 | `datastar.debug-logging`              | `false` | Enables debug logs for formatted SSE events and connection lifecycle |
 

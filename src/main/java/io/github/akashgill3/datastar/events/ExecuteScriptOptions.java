@@ -8,9 +8,29 @@ import java.util.List;
 /**
  * Options for executing JavaScript in the browser.
  * <p>
+ * These options control how the script tag is injected and managed, along with
+ * SSE delivery options (event id and retry duration).
+ * <p>
  * Note: This is not a Datastar event type. ExecuteScript is a convenience method
- * that internally uses PatchElementsEvent to inject a script tag.
+ * that internally uses {@link PatchElementsEvent} to inject a script tag.
+ * <p>
+ * When {@link #autoRemove()} is enabled, the script tag is automatically removed
+ * from the DOM after execution (Default: {@code true}).
+ * <p>
+ * Typical usage:
+ * <pre>
+ * ExecuteScriptOptions options = ExecuteScriptOptions.builder()
+ *     .autoRemove(true)
+ *     .attribute("type", "module")
+ *     .eventId("script-1")
+ *     .retryDuration(1000L)
+ *     .build();
+ * </pre>
  *
+ * @param autoRemove    automatically remove script tag after execution (Default: {@code true})
+ * @param attributes    list of HTML attributes to apply to the script tag
+ * @param eventId       optional SSE event id
+ * @param retryDuration SSE retry duration in milliseconds (Default: {@code 1000ms})
  * @author Akash Gill
  */
 public record ExecuteScriptOptions(Boolean autoRemove, List<String> attributes, String eventId,

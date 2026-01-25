@@ -8,17 +8,43 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+/**
+ * Auto-configuration for Datastar.
+ * <p>
+ * This configuration automatically creates a {@link Datastar} bean when Spring Boot
+ * detects the Datastar library on the classpath. The bean is configured using
+ * properties defined in {@link DatastarProperties}.
+ * <p>
+ * The configuration can be customized via application properties with the prefix
+ * {@code datastar}, including timeout, max concurrent connections, and debug logging.
+ * <p>
+ * To disable this autoconfiguration, exclude it in your Spring Boot application:
+ * <pre>
+ * {@code @SpringBootApplication(exclude = DatastarAutoConfiguration.class)}
+ * </pre>
+ *
+ * @author Akash Gill
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(DatastarProperties.class)
 public class DatastarAutoConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(DatastarAutoConfiguration.class);
 
+    /**
+     * Creates the {@link Datastar} bean with the provided configuration properties.
+     * <p>
+     * This bean is only created if no other {@link Datastar} bean is already defined
+     * in the application context.
+     *
+     * @param properties the Datastar configuration properties
+     * @return configured Datastar instance
+     */
     @Bean
     @ConditionalOnMissingBean
     public Datastar datastar(DatastarProperties properties) {
-        log.info("Configuring Datastar with timeout: {}, maxConcurrentConnections: {}, debugLogging: {}",
-                properties.timeout(), properties.maxConcurrentConnections(), properties.debugLogging());
+        log.info("Configuring Datastar with maxConcurrentConnections: {}, debugLogging: {}",
+                properties.maxConcurrentConnections(), properties.debugLogging());
         return new Datastar(properties);
     }
 

@@ -283,7 +283,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         if (event.options().eventId() != null) {
             appendLine(sb, "id", event.options().eventId());
         }
-        if (event.options().retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION) {
+        if (event.options().retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
             appendLine(sb, "retry", event.options().retryDuration());
         }
         if (event.options().selector() != null && !event.options().selector().isEmpty()) {
@@ -342,7 +342,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         if (event.options().eventId() != null) {
             appendLine(sb, "id", event.options().eventId());
         }
-        if (event.options().retryDuration() != null && !event.options().retryDuration().equals(Consts.DEFAULT_SSE_RETRY_DURATION)) {
+        if (event.options().retryDuration() != null && !event.options().retryDuration().equals(Consts.DEFAULT_SSE_RETRY_DURATION_MS)) {
             appendLine(sb, "retry", event.options().retryDuration());
         }
 
@@ -350,8 +350,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
             appendDataLine(sb, Consts.ONLY_IF_MISSING_DATALINE_LITERAL, true);
         }
 
-        if (event.script() != null && !event.script().isEmpty()) {
-            event.script().lines()
+        if (event.signals() != null && !event.signals().isEmpty()) {
+            event.signals().lines()
                     .filter(line -> !line.isBlank())
                     .forEach(line -> appendDataLine(sb, Consts.SIGNALS_DATALINE_LITERAL, line));
         }

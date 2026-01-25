@@ -3,13 +3,16 @@ package io.github.akashgill3.datastar;
 import io.github.akashgill3.datastar.events.ElementPatchMode;
 import io.github.akashgill3.datastar.events.Namespace;
 
+/**
+ * Constants used by Datastar.
+ */
 public final class Consts {
     private Consts() {
     }
 
     public static final String DATASTAR_KEY = "datastar";
 
-    public static final long DEFAULT_SSE_RETRY_DURATION = 1000L;
+    public static final long DEFAULT_SSE_RETRY_DURATION_MS = 1000L;
     public static final boolean DEFAULT_ELEMENTS_USE_VIEW_TRANSITIONS = false;
     public static final boolean DEFAULT_PATCH_SIGNAL_ONLY_IF_MISSING = false;
     public static final boolean DEFAULT_EXECUTE_AUTO_REMOVE = true;
