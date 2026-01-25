@@ -1,7 +1,7 @@
 package io.github.akashgill3.datastar;
 
-
-import io.github.akashgill3.datastar.events.PatchElementsEvent;
+import io.github.akashgill3.datastar.events.ElementPatchMode;
+import io.github.akashgill3.datastar.events.Namespace;
 
 public final class Consts {
     private Consts() {
@@ -13,8 +13,8 @@ public final class Consts {
     public static final boolean DEFAULT_ELEMENTS_USE_VIEW_TRANSITIONS = false;
     public static final boolean DEFAULT_PATCH_SIGNAL_ONLY_IF_MISSING = false;
     public static final boolean DEFAULT_EXECUTE_AUTO_REMOVE = true;
-    public static final String DEFAULT_NAMESPACE = "html";
-    public static final PatchElementsEvent.ElementPatchMode DEFAULT_ELEMENT_PATCH_MODE = PatchElementsEvent.ElementPatchMode.Outer;
+    public static final Namespace DEFAULT_NAMESPACE = Namespace.HTML;
+    public static final ElementPatchMode DEFAULT_ELEMENT_PATCH_MODE = ElementPatchMode.Outer;
 
     public static final String SELECTOR_DATALINE_LITERAL = "selector";
     public static final String MODE_DATALINE_LITERAL = "mode";
