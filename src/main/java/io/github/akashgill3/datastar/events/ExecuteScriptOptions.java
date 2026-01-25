@@ -2,8 +2,8 @@ package io.github.akashgill3.datastar.events;
 
 import io.github.akashgill3.datastar.Consts;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Options for executing JavaScript in the browser.
@@ -13,9 +13,8 @@ import java.util.Map;
  *
  * @author Akash Gill
  */
-public record ExecuteScriptOptions(Boolean autoRemove, Map<String, String> attributes, String eventId,
+public record ExecuteScriptOptions(Boolean autoRemove, List<String> attributes, String eventId,
                                    Long retryDuration) {
-    //
     public static final ExecuteScriptOptions DEFAULT = ExecuteScriptOptions.builder().build();
 
     public static Builder builder() {
@@ -24,7 +23,7 @@ public record ExecuteScriptOptions(Boolean autoRemove, Map<String, String> attri
 
     public static class Builder {
         private Boolean autoRemove = Consts.DEFAULT_EXECUTE_AUTO_REMOVE;
-        private final Map<String, String> attributes = new HashMap<>();
+        private final List<String> attributes = new ArrayList<>();
         private String eventId;
         private Long retryDuration;
 
@@ -37,12 +36,17 @@ public record ExecuteScriptOptions(Boolean autoRemove, Map<String, String> attri
         }
 
         public Builder attribute(String key, String value) {
-            this.attributes.put(key, value);
+            this.attributes.add("%s=\"%s\"".formatted(key, value));
             return this;
         }
 
-        public Builder attributes(Map<String, String> attributes) {
-            this.attributes.putAll(attributes);
+        public Builder attribute(String attribute) {
+            this.attributes.add(attribute);
+            return this;
+        }
+
+        public Builder attributes(List<String> attributes) {
+            this.attributes.addAll(attributes);
             return this;
         }
 
@@ -57,7 +61,7 @@ public record ExecuteScriptOptions(Boolean autoRemove, Map<String, String> attri
         }
 
         public ExecuteScriptOptions build() {
-            return new ExecuteScriptOptions(autoRemove, Map.copyOf(attributes), eventId, retryDuration);
+            return new ExecuteScriptOptions(autoRemove, List.copyOf(attributes), eventId, retryDuration);
         }
     }
 }

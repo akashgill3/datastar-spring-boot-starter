@@ -11,7 +11,7 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import static org.springframework.http.MediaType.TEXT_PLAIN;
@@ -442,7 +442,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return an HTML string containing the complete {@code <script>} element
      * @see ExecuteScriptOptions
      */
-    private String buildScriptElement(String script, Boolean autoRemove, Map<String, String> attributes) {
+    private String buildScriptElement(String script, Boolean autoRemove, List<String> attributes) {
         if (script.isEmpty() || script.contains("</script>")) {
             throw new IllegalArgumentException("Script cannot be empty or contain '</script>'");
         }
@@ -455,10 +455,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         }
 
         if (attributes != null && !attributes.isEmpty()) {
-            attributes.forEach((name, value) -> {
-                if (name != null && !name.isBlank() && value != null && !value.isBlank()) {
-                    el.append(" %s=\"%s\"".formatted(name, value));
-                }
+            attributes.forEach(attr -> {
+                if (!attr.isBlank()) el.append(" ").append(attr);
             });
         }
 
