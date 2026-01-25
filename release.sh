@@ -26,7 +26,7 @@ if git tag | grep -q "^$VERSION$"; then
   exit 1
 fi
 
-if ! grep -q "$VERSION" CHANGELOG.md; then
+if ! grep -q "${VERSION#v}" CHANGELOG.md; then
   echo "CHANGELOG.md does not contain $VERSION"
   exit 1
 fi
