@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Bean;
  * properties defined in {@link DatastarProperties}.
  * <p>
  * The configuration can be customized via application properties with the prefix
- * {@code datastar}, including timeout, max concurrent connections, and debug logging.
+ * {@code datastar}, including max concurrent connections, and logging flag.
  * <p>
  * To disable this autoconfiguration, exclude it in your Spring Boot application:
  * <pre>
@@ -43,8 +43,8 @@ public class DatastarAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Datastar datastar(DatastarProperties properties) {
-        log.info("Configuring Datastar with maxConcurrentConnections: {}, debugLogging: {}",
-                properties.maxConcurrentConnections(), properties.debugLogging());
+        log.info("Configuring Datastar with maxConcurrentConnections: {}, enableLogging: {}",
+                properties.maxConcurrentConnections(), properties.enableLogging());
         return new Datastar(properties);
     }
 

@@ -12,7 +12,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
@@ -59,7 +58,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter patchElements(PatchElementsEvent event) throws IOException {
-        super.send(formatPatchElementsEvent(event));
+        super.send(formatPatchElementsEvent(event), TEXT_PLAIN);
         return this;
     }
 
@@ -71,7 +70,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter patchSignals(PatchSignalsEvent event) throws IOException {
-        super.send(formatPatchSignalsEvent(event));
+        super.send(formatPatchSignalsEvent(event), TEXT_PLAIN);
         return this;
     }
 
@@ -141,7 +140,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter consoleLog(String message, ExecuteScriptOptions options) throws IOException {
-        String script = String.format("console.log(%s)", toJsString(message));
+        String script = "console.log(" + toJsString(message) + ")";
         return executeScript(script, options);
     }
 
@@ -167,7 +166,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter consoleError(String message, ExecuteScriptOptions options) throws IOException {
-        String script = String.format("console.error(%s)", toJsString(message));
+        String script = "console.error(" + toJsString(message) + ")";
         return executeScript(script, options);
     }
 
@@ -198,7 +197,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter redirect(String url, ExecuteScriptOptions options) throws IOException {
-        String script = "setTimeout(() => window.location.href = %s)".formatted(toJsString(url));
+        String script = "setTimeout(() => window.location.href = " + toJsString(url) + ")";
         return executeScript(script, options);
     }
 
@@ -224,7 +223,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter replaceUrl(String url, ExecuteScriptOptions options) throws IOException {
-        String script = "setTimeout(() => window.history.replaceState({}, '', %s)".formatted(toJsString(url));
+        String script = "setTimeout(() => window.history.replaceState({}, '', " + toJsString(url) + "))";
         return executeScript(script, options);
     }
 
@@ -240,6 +239,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         if (headers.getContentType() == null) {
             headers.setContentType(MediaType.TEXT_EVENT_STREAM);
         }
+
+        headers.setCacheControl("no-cache");
     }
 
     // ========================================================================
@@ -247,7 +248,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     // ========================================================================
 
     /**
-     * Format a PatchElementsEvent into SSE wire format.
+     * Formats a PatchElementsEvent into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -272,11 +273,13 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * Multi-line HTML is split with each line sent as a separate {@code data: elements} line.
      *
      * @param event the patch elements event to format
-     * @return a set containing a single {@link DataWithMediaType} with the formatted SSE event
+     * @return the formatted SSE event
      * @see <a href="https://data-star.dev/reference/sse_events#datastar-patch-elements">Datastar Reference</a>
      */
-    private Set<DataWithMediaType> formatPatchElementsEvent(PatchElementsEvent event) {
-        StringBuilder sb = new StringBuilder();
+    private String formatPatchElementsEvent(PatchElementsEvent event) {
+        String elements = event.elements();
+        int initialCapacity = 128 + (elements == null ? 0 : Math.min(elements.length(), 4096));
+        StringBuilder sb = new StringBuilder(initialCapacity);
 
         appendLine(sb, "event", DatastarEventType.PATCH_ELEMENTS.value);
 
@@ -299,22 +302,20 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
             appendDataLine(sb, Consts.NAMESPACE_DATALINE_LITERAL, event.options().namespace().value);
         }
 
-        if (event.elements() != null && !event.elements().isEmpty()) {
-            event.elements().lines()
-                    .filter(line -> !line.isBlank())
-                    .forEach(line -> appendDataLine(sb, Consts.ELEMENTS_DATALINE_LITERAL, line));
+        if (elements != null && !elements.isEmpty()) {
+            appendNonBlankDataLines(sb, Consts.ELEMENTS_DATALINE_LITERAL, elements);
         }
         sb.append("\n");
 
-        if (properties.debugLogging()) {
-            log.debug("Formatted PatchElementsEvent into SSE event: {}", sb);
+        if (properties.enableLogging() && log.isDebugEnabled()) {
+            log.debug("Formatted PatchElementsEvent with length {}", sb.length());
         }
 
-        return Set.of(new DataWithMediaType(sb.toString(), TEXT_PLAIN));
+        return sb.toString();
     }
 
     /**
-     * Format a PatchSignalsEvent into SSE wire format.
+     * Formats a PatchSignalsEvent into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -331,43 +332,44 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * with each line sent as a separate {@code data: signals} line.
      *
      * @param event the patch signals event to format
-     * @return a set containing a single {@link DataWithMediaType} with the formatted SSE event
+     * @return the formatted SSE event
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7386">RFC 7386 JSON Merge Patch</a>
      */
-    private Set<DataWithMediaType> formatPatchSignalsEvent(PatchSignalsEvent event) {
-        StringBuilder sb = new StringBuilder(128);
+    private String formatPatchSignalsEvent(PatchSignalsEvent event) {
+        String signals = event.signals();
+        int initialCapacity = 128 + (signals == null ? 0 : Math.min(signals.length(), 4096));
+        StringBuilder sb = new StringBuilder(initialCapacity);
 
         appendLine(sb, "event", DatastarEventType.PATCH_SIGNALS.value);
 
-        if (event.options().eventId() != null) {
-            appendLine(sb, "id", event.options().eventId());
+        PatchSignalOptions options = event.options();
+        if (options.eventId() != null) {
+            appendLine(sb, "id", options.eventId());
         }
-        if (event.options().retryDuration() != null && !event.options().retryDuration().equals(Consts.DEFAULT_SSE_RETRY_DURATION_MS)) {
-            appendLine(sb, "retry", event.options().retryDuration());
+        if (options.retryDuration() != null && !options.retryDuration().equals(Consts.DEFAULT_SSE_RETRY_DURATION_MS)) {
+            appendLine(sb, "retry", options.retryDuration());
         }
 
-        if (event.options().onlyIfMissing()) {
+        if (options.onlyIfMissing()) {
             appendDataLine(sb, Consts.ONLY_IF_MISSING_DATALINE_LITERAL, true);
         }
 
-        if (event.signals() != null && !event.signals().isEmpty()) {
-            event.signals().lines()
-                    .filter(line -> !line.isBlank())
-                    .forEach(line -> appendDataLine(sb, Consts.SIGNALS_DATALINE_LITERAL, line));
+        if (signals != null && !signals.isEmpty()) {
+            appendNonBlankDataLines(sb, Consts.SIGNALS_DATALINE_LITERAL, signals);
         }
         sb.append("\n");
 
-        if (properties.debugLogging()) {
-            log.debug("Formatted PatchSignalsEvent into SSE event: {}", sb);
+        if (properties.enableLogging() && log.isDebugEnabled()) {
+            log.debug("Formatted PatchSignalsEvent into SSE event, with length: {}", sb.length());
         }
 
-        return Set.of(new DataWithMediaType(sb.toString(), TEXT_PLAIN));
+        return sb.toString();
     }
 
     /**
      * Append an SSE field line to the output buffer.
      * <p>
-     * Generates a line in the format: {@code field: value\n}
+     * The line is in the format: {@code field: value\n}
      * <p>
      * Used for SSE control fields like {@code event}, {@code id}, and {@code retry}.
      * These fields appear before any {@code data} lines and control SSE behavior.
@@ -379,13 +381,13 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * SSE Specification</a>
      */
     private void appendLine(StringBuilder sb, String literal, Object value) {
-        sb.append("%s: %s\n".formatted(literal, value));
+        sb.append(literal).append(": ").append(value).append('\n');
     }
 
     /**
      * Append a Datastar data line to the output buffer.
      * <p>
-     * Generates a line in the format: {@code data: prefix value\n}
+     * The line is in the format: {@code data: prefix value\n}
      * <p>
      * The prefix (literal) identifies the data type for Datastar's protocol:
      * <ul>
@@ -406,7 +408,67 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @param value   the data value
      */
     private void appendDataLine(StringBuilder sb, String literal, Object value) {
-        sb.append("data: %s %s\n".formatted(literal, value));
+        sb.append("data: ").append(literal).append(' ').append(value).append('\n');
+    }
+
+    /**
+     * Appends "data: {literal} {line}\n" for each non-blank line in {@code payload},
+     * efficiently splitting on newline boundaries without allocating substrings.
+     * <p>
+     * Handles both LF ({@code \n}) and CRLF ({@code \r\n}) line endings.
+     * Lines containing only whitespace are skipped.
+     * <p>
+     * Each non-blank line is written as: {@code data: literal line\n}
+     * <p>
+     *
+     * @param sb      the string builder to append to
+     * @param literal the data type prefix (e.g., "elements", "signals")
+     * @param payload the multi-line string to process
+     */
+    private void appendNonBlankDataLines(StringBuilder sb, String literal, String payload) {
+        final int n = payload.length();
+        int start = 0;
+
+        for (int i = 0; i <= n; i++) {
+            if (i == n || payload.charAt(i) == '\n') {
+                int end = i;
+
+                // Trim trailing '\r' (handles CRLF)
+                if (end > start && payload.charAt(end - 1) == '\r') {
+                    end--;
+                }
+
+                if (!isBlankRange(payload, start, end)) {
+                    sb.append("data: ").append(literal).append(' ');
+                    sb.append(payload, start, end);
+                    sb.append('\n');
+                }
+
+                start = i + 1;
+            }
+        }
+    }
+
+    /**
+     * Check if a substring range contains only whitespace characters.
+     * <p>
+     * Returns {@code true} if all characters in the range {@code [start, end)}
+     * are whitespace according to {@link Character#isWhitespace(char)}.
+     * <p>
+     * Returns {@code true} for empty ranges ({@code start >= end}).
+     *
+     * @param s     the string to check
+     * @param start the start index (inclusive)
+     * @param end   the end index (exclusive)
+     * @return {@code true} if the range contains only whitespace, {@code false} otherwise
+     */
+    private boolean isBlankRange(String s, int start, int end) {
+        for (int i = start; i < end; i++) {
+            if (!Character.isWhitespace(s.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -443,8 +505,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @see ExecuteScriptOptions
      */
     private String buildScriptElement(String script, Boolean autoRemove, List<String> attributes) {
-        if (script.isEmpty() || script.contains("</script>")) {
-            throw new IllegalArgumentException("Script cannot be empty or contain '</script>'");
+        if (script == null || script.isEmpty() || script.contains("</script>")) {
+            throw new IllegalArgumentException("Script cannot be null/empty or contain '</script>'");
         }
 
         StringBuilder el = new StringBuilder();
@@ -455,9 +517,11 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         }
 
         if (attributes != null && !attributes.isEmpty()) {
-            attributes.forEach(attr -> {
-                if (!attr.isBlank()) el.append(" ").append(attr);
-            });
+            for (String attr : attributes) {
+                if (attr != null && !attr.isBlank()) {
+                    el.append(' ').append(attr);
+                }
+            }
         }
 
         el.append(">").append(script).append("</script>");

@@ -4,6 +4,7 @@ import io.github.akashgill3.datastar.autoconfigure.DatastarProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -106,24 +107,35 @@ public class Datastar {
 
         DatastarSseEmitter emitter = new DatastarSseEmitter(properties);
 
+        AtomicBoolean decremented = new AtomicBoolean(false);
+        Runnable decrementOnce = () -> {
+            if (decremented.compareAndSet(false, true)) {
+                activeConnections.decrementAndGet();
+            }
+        };
+
         emitter.onCompletion(() -> {
-            activeConnections.decrementAndGet();
-            if (properties.debugLogging()) {
-                log.debug("SSE connection completed. Active: {}", activeConnections.get());
+            decrementOnce.run();
+            if (properties.enableLogging() && log.isDebugEnabled()) {
+                log.debug("SSE connection completed. Active connections: {}", activeConnections.get());
             }
         });
 
         emitter.onTimeout(() -> {
-            activeConnections.decrementAndGet();
-            log.warn("SSE connection timeout. Active: {}", activeConnections.get());
+            decrementOnce.run();
+            if (properties.enableLogging() && log.isDebugEnabled()) {
+                log.debug("SSE connection timed out. Active connections: {} (If unexpected, review server/proxy idle timeouts or send keep-alives.)", activeConnections.get());
+            }
         });
 
         emitter.onError(throwable -> {
-            activeConnections.decrementAndGet();
-            log.error("SSE connection error. Active: {}", activeConnections.get(), throwable);
+            decrementOnce.run();
+            if (properties.enableLogging() && log.isDebugEnabled()) {
+                log.debug("SSE connection error. Active: {}", activeConnections.get(), throwable);
+            }
         });
 
-        if (properties.debugLogging()) {
+        if (properties.enableLogging() && log.isDebugEnabled()) {
             log.debug("Created new SSE emitter. Active connections: {}", activeConnections.get());
         }
 
