@@ -1,7 +1,7 @@
 package io.github.akashgill3.datastar.events;
 
 /**
- * Patch modes for updating DOM elements via {@link PatchElementsEvent}.
+ * Patch modes for updating DOM elements via {@link DatastarEventType#PATCH_ELEMENTS}.
  * <p>
  * The chosen mode in which an element is patched into the DOM.
  * <p>

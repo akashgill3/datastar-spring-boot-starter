@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * Typical usage:
  * <pre>
- * &#64;RestController
+ * {@code
+ * @RestController
  * public class MyController {
  *     private final Datastar datastar;
  *     private final Executor executor = Executors.newVirtualThreadPerTaskExecutor();
@@ -32,22 +33,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  *         this.datastar = datastar;
  *     }
  *
- *     &#64;GetMapping("/sse")
+ *     @GetMapping("/sse")
  *     public DatastarSseEmitter handle() {
- *         DatastarSseEmitter emitter = datastar.createEmitter();
+ *         DatastarSseEmitter sseEmitter = datastar.createEmitter();
  *
  *         // Usually ran using executor for async processing
  *         executor.execute(() -> {
  *             try {
- *                 emitter.patchElements("&lt;div&gt;Hello&lt;/div&gt;");
- *                 emitter.complete();
+ *                 sseEmitter.patchElements("<div>Hello</div>");
+ *                 sseEmitter.complete();
  *             } catch (Exception e) {
- *                 emitter.completeWithError(e);
+ *                 sseEmitter.completeWithError(e);
  *             }
  *         });
  *
- *         return emitter;
+ *         return sseEmitter;
  *     }
+ * }
  * }
  * </pre>
  *

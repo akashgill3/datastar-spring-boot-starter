@@ -3,90 +3,83 @@ package io.github.akashgill3.datastar.events;
 import io.github.akashgill3.datastar.Consts;
 
 /**
- * Options for {@link PatchElementsEvent}.
+ * Configuration options for {@code datastar-patch-elements} event.
  * <p>
- * These options control how a patch is applied (selector, patch mode, namespace)
- * and how the event is delivered over SSE (event id and retry duration).
+ * These options control how a patch is applied (selector, patch mode, namespace, useViewTransition)
+ * and how the event is delivered over SSE (event ID and retry duration).
  * <p>
  * Typical usage:
  * <pre>
- * PatchElementOptions options = PatchElementOptions.builder()
+ * sseEmitter.patchElements(elements, options -> options
  *     .selector("#content")
  *     .mode(ElementPatchMode.Outer)
  *     .useViewTransition(true)
  *     .namespace(Namespace.HTML)
  *     .eventId("my-event-id")
- *     .retryDuration(1000)
- *     .build();
+ *     .retryDuration(1000L));
  * </pre>
- * <p>
- *
- * @param selector           CSS selector for the target element(s)
- * @param mode               how to apply the patch relative to the target (Default: {@link ElementPatchMode#Outer}
- * @param useViewTransition  whether to use view transitions (if supported) (Default: {@code false})
- * @param namespace          namespace used when parsing the incoming markup (Default: {@link Namespace#HTML})
- * @param eventId            optional SSE event id
- * @param retryDuration      SSE retry duration in milliseconds (Default: {@code 1000ms})
  *
  * @author Akash Gill
  */
-public record PatchElementOptions(
-        String selector,
-        ElementPatchMode mode,
-        boolean useViewTransition,
-        Namespace namespace,
-        String eventId,
-        long retryDuration) {
+public class PatchElementOptions {
+    private String eventId;
+    private long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
+    private String selector;
+    private ElementPatchMode mode = Consts.DEFAULT_ELEMENT_PATCH_MODE;
+    private boolean useViewTransition = Consts.DEFAULT_ELEMENTS_USE_VIEW_TRANSITIONS;
+    private Namespace namespace = Consts.DEFAULT_NAMESPACE;
 
-    public static final PatchElementOptions DEFAULT = PatchElementOptions.builder().build();
-
-    public static Builder builder() {
-        return new Builder();
+    public PatchElementOptions eventId(String eventId) {
+        this.eventId = eventId;
+        return this;
     }
 
-    public static class Builder {
-        private String eventId;
-        private String selector;
-        private ElementPatchMode mode = Consts.DEFAULT_ELEMENT_PATCH_MODE;
-        private boolean useViewTransition = Consts.DEFAULT_ELEMENTS_USE_VIEW_TRANSITIONS;
-        private Namespace namespace = Consts.DEFAULT_NAMESPACE;
-        private long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
+    public PatchElementOptions retryDuration(long retryDuration) {
+        this.retryDuration = retryDuration;
+        return this;
+    }
 
-        private Builder() {
-        }
+    public PatchElementOptions selector(String selector) {
+        this.selector = selector;
+        return this;
+    }
 
-        public Builder eventId(String eventId) {
-            this.eventId = eventId;
-            return this;
-        }
+    public PatchElementOptions mode(ElementPatchMode mode) {
+        this.mode = mode;
+        return this;
+    }
 
-        public Builder selector(String selector) {
-            this.selector = selector;
-            return this;
-        }
+    public PatchElementOptions useViewTransition(boolean useViewTransition) {
+        this.useViewTransition = useViewTransition;
+        return this;
+    }
 
-        public Builder mode(ElementPatchMode mode) {
-            this.mode = mode;
-            return this;
-        }
+    public PatchElementOptions namespace(Namespace namespace) {
+        this.namespace = namespace;
+        return this;
+    }
 
-        public Builder useViewTransition(boolean useViewTransition) {
-            this.useViewTransition = useViewTransition;
-            return this;
-        }
+    public String getEventId() {
+        return eventId;
+    }
 
-        public Builder namespace(Namespace namespace) {
-            this.namespace = namespace;
-            return this;
-        }
+    public long getRetryDuration() {
+        return retryDuration;
+    }
 
-        public Builder retryDuration(long retryDuration) {
-            this.retryDuration = retryDuration;
-            return this;
-        }
+    public String getSelector() {
+        return selector;
+    }
 
-        public PatchElementOptions build() {
-            return new PatchElementOptions(selector, mode, useViewTransition, namespace, eventId, retryDuration);
-        }
+    public ElementPatchMode getMode() {
+        return mode;
+    }
+
+    public boolean isUseViewTransition() {
+        return useViewTransition;
+    }
+
+    public Namespace getNamespace() {
+        return namespace;
     }
 }

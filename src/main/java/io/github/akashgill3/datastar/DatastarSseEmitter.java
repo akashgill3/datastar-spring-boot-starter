@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
@@ -20,8 +21,8 @@ import static org.springframework.http.MediaType.TEXT_PLAIN;
  * <p>
  * Supports the following Datastar event types:
  * <ul>
- *   <li>{@link #patchElements(PatchElementsEvent)} - Patch DOM elements</li>
- *   <li>{@link #patchSignals(PatchSignalsEvent)} - Patch signal store</li>
+ *   <li>{@link #patchElements(String)} - Patch DOM elements</li>
+ *   <li>{@link #patchSignals(String)} - Patch signal store</li>
  * </ul>
  * <p>
  * Also provides convenience methods:
@@ -53,24 +54,52 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     /**
      * Send a patch elements event to update the DOM.
      *
-     * @param event the patch elements event containing HTML and options
+     * @param elements the HTML elements to patch
      * @return this emitter for method chaining
      * @throws IOException if an I/O error occurs
      */
-    public DatastarSseEmitter patchElements(PatchElementsEvent event) throws IOException {
-        super.send(formatPatchElementsEvent(event), TEXT_PLAIN);
+    public DatastarSseEmitter patchElements(String elements) throws IOException {
+        return patchElements(elements, options -> {
+        });
+    }
+
+    /**
+     * Send a patch elements event to update the DOM.
+     *
+     * @param elements the HTML elements to patch
+     * @param options  the patch options
+     * @return this emitter for method chaining
+     * @throws IOException if an I/O error occurs
+     */
+    public DatastarSseEmitter patchElements(String elements, Consumer<PatchElementOptions> options) throws IOException {
+        PatchElementConfig opts = PatchElementConfig.from(options);
+        super.send(formatPatchElementsEvent(elements, opts), TEXT_PLAIN);
         return this;
     }
 
     /**
      * Send a patch signals event to update the signal store.
      *
-     * @param event the patch signals event containing JSON signals and options
+     * @param signals the JSON signals to patch
      * @return this emitter for method chaining
      * @throws IOException if an I/O error occurs
      */
-    public DatastarSseEmitter patchSignals(PatchSignalsEvent event) throws IOException {
-        super.send(formatPatchSignalsEvent(event), TEXT_PLAIN);
+    public DatastarSseEmitter patchSignals(String signals) throws IOException {
+        return patchSignals(signals, options -> {
+        });
+    }
+
+    /**
+     * Send a patch signals event to update the signal store.
+     *
+     * @param signals the JSON signals to patch
+     * @param config  the patch options
+     * @return this emitter for method chaining
+     * @throws IOException if an I/O error occurs
+     */
+    public DatastarSseEmitter patchSignals(String signals, Consumer<PatchSignalOptions> config) throws IOException {
+        PatchSignalConfig opts = PatchSignalConfig.from(config);
+        super.send(formatPatchSignalsEvent(signals, opts), TEXT_PLAIN);
         return this;
     }
 
@@ -82,7 +111,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * Execute a JavaScript script in the browser with default options.
      * <p>
      * This is a convenience method that internally creates a {@code <script>} tag
-     * and sends it via {@link #patchElements(PatchElementsEvent)}. It is not a
+     * and sends it via {@link #patchElements(String)}. It is not a
      * separate Datastar event type.
      *
      * @param script the JavaScript code to execute
@@ -90,7 +119,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter executeScript(String script) throws IOException {
-        return executeScript(script, ExecuteScriptOptions.DEFAULT);
+        return executeScript(script, options -> {
+        });
     }
 
     /**
@@ -101,17 +131,22 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return this emitter
      * @throws IOException if an I/O error occurs
      */
-    public DatastarSseEmitter executeScript(String script, ExecuteScriptOptions options) throws IOException {
-        String element = buildScriptElement(script, options.autoRemove(), options.attributes());
+    public DatastarSseEmitter executeScript(String script, Consumer<ExecuteScriptOptions> options) throws IOException {
+        ExecuteScriptConfig opts = ExecuteScriptConfig.from(options);
+        String element = buildScriptElement(script, opts.autoRemove(), opts.attributes());
 
-        PatchElementOptions.Builder builder = PatchElementOptions.builder()
-                .selector("body")
-                .mode(ElementPatchMode.Append);
+        Consumer<PatchElementOptions> patchElementOptionsConsumer = patchElementOptions -> {
+            patchElementOptions.selector("body")
+                    .mode(ElementPatchMode.Append);
+            if (opts.eventId() != null && !opts.eventId().isEmpty()) {
+                patchElementOptions.eventId(opts.eventId());
+            }
+            if (opts.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+                patchElementOptions.retryDuration(opts.retryDuration());
+            }
+        };
 
-        if (options.eventId() != null && !options.eventId().isEmpty()) builder.eventId(options.eventId());
-        if (options.retryDuration() != null) builder.retryDuration(options.retryDuration());
-
-        return patchElements(PatchElementsEvent.withOptions(element, builder.build()));
+        return patchElements(element, patchElementOptionsConsumer);
     }
 
     // ========================================================================
@@ -128,7 +163,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter consoleLog(String message) throws IOException {
-        return consoleLog(message, ExecuteScriptOptions.DEFAULT);
+        return consoleLog(message, options -> {
+        });
     }
 
     /**
@@ -139,7 +175,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return this emitter for method chaining
      * @throws IOException if an I/O error occurs
      */
-    public DatastarSseEmitter consoleLog(String message, ExecuteScriptOptions options) throws IOException {
+    public DatastarSseEmitter consoleLog(String message, Consumer<ExecuteScriptOptions> options) throws IOException {
         String script = "console.log(" + toJsString(message) + ")";
         return executeScript(script, options);
     }
@@ -154,7 +190,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter consoleError(String message) throws IOException {
-        return consoleError(message, ExecuteScriptOptions.DEFAULT);
+        return consoleError(message, options -> {
+        });
     }
 
     /**
@@ -165,7 +202,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return this emitter for method chaining
      * @throws IOException if an I/O error occurs
      */
-    public DatastarSseEmitter consoleError(String message, ExecuteScriptOptions options) throws IOException {
+    public DatastarSseEmitter consoleError(String message, Consumer<ExecuteScriptOptions> options) throws IOException {
         String script = "console.error(" + toJsString(message) + ")";
         return executeScript(script, options);
     }
@@ -185,7 +222,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter redirect(String url) throws IOException {
-        return redirect(url, ExecuteScriptOptions.DEFAULT);
+        return redirect(url, options -> {
+        });
     }
 
     /**
@@ -196,7 +234,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return this emitter for method chaining
      * @throws IOException if an I/O error occurs
      */
-    public DatastarSseEmitter redirect(String url, ExecuteScriptOptions options) throws IOException {
+    public DatastarSseEmitter redirect(String url, Consumer<ExecuteScriptOptions> options) throws IOException {
         String script = "setTimeout(() => window.location.href = " + toJsString(url) + ")";
         return executeScript(script, options);
     }
@@ -211,7 +249,8 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter replaceUrl(String url) throws IOException {
-        return replaceUrl(url, ExecuteScriptOptions.DEFAULT);
+        return replaceUrl(url, options -> {
+        });
     }
 
     /**
@@ -222,7 +261,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return this emitter for method chaining
      * @throws IOException if an I/O error occurs
      */
-    public DatastarSseEmitter replaceUrl(String url, ExecuteScriptOptions options) throws IOException {
+    public DatastarSseEmitter replaceUrl(String url, Consumer<ExecuteScriptOptions> options) throws IOException {
         String script = "setTimeout(() => window.history.replaceState({}, '', " + toJsString(url) + "))";
         return executeScript(script, options);
     }
@@ -244,11 +283,42 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     }
 
     // ========================================================================
+    // Internal Records
+    // ========================================================================
+
+    private record PatchElementConfig(String eventId, long retryDuration, String selector, ElementPatchMode mode,
+                                      boolean useViewTransition, Namespace namespace) {
+        static PatchElementConfig from(Consumer<PatchElementOptions> config) {
+            PatchElementOptions opts = new PatchElementOptions();
+            config.accept(opts);
+            return new PatchElementConfig(opts.getEventId(), opts.getRetryDuration(), opts.getSelector(), opts.getMode(),
+                    opts.isUseViewTransition(), opts.getNamespace());
+        }
+    }
+
+    private record PatchSignalConfig(String eventId, long retryDuration, boolean onlyIfMissing) {
+        static PatchSignalConfig from(Consumer<PatchSignalOptions> config) {
+            PatchSignalOptions opts = new PatchSignalOptions();
+            config.accept(opts);
+            return new PatchSignalConfig(opts.getEventId(), opts.getRetryDuration(), opts.isOnlyIfMissing());
+        }
+    }
+
+    private record ExecuteScriptConfig(String eventId, long retryDuration, boolean autoRemove,
+                                       List<String> attributes) {
+        static ExecuteScriptConfig from(Consumer<ExecuteScriptOptions> config) {
+            ExecuteScriptOptions opts = new ExecuteScriptOptions();
+            config.accept(opts);
+            return new ExecuteScriptConfig(opts.getEventId(), opts.getRetryDuration(), opts.getAutoRemove(), opts.getAttributes());
+        }
+    }
+
+    // ========================================================================
     // Internal Formatting Methods
     // ========================================================================
 
     /**
-     * Formats a PatchElementsEvent into SSE wire format.
+     * Formats a ${@link DatastarEventType#PATCH_ELEMENTS} event into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -272,34 +342,34 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * Only non-default values are included in the output to minimize wire size.
      * Multi-line HTML is split with each line sent as a separate {@code data: elements} line.
      *
-     * @param event the patch elements event to format
+     * @param elements the HTML to patch
+     * @param options  the patch options
      * @return the formatted SSE event
      * @see <a href="https://data-star.dev/reference/sse_events#datastar-patch-elements">Datastar Reference</a>
      */
-    private String formatPatchElementsEvent(PatchElementsEvent event) {
-        String elements = event.elements();
+    private String formatPatchElementsEvent(String elements, PatchElementConfig options) {
         int initialCapacity = 128 + (elements == null ? 0 : Math.min(elements.length(), 4096));
         StringBuilder sb = new StringBuilder(initialCapacity);
 
         appendLine(sb, "event", DatastarEventType.PATCH_ELEMENTS.value);
 
-        if (event.options().eventId() != null) {
-            appendLine(sb, "id", event.options().eventId());
+        if (options.eventId() != null) {
+            appendLine(sb, "id", options.eventId());
         }
-        if (event.options().retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
-            appendLine(sb, "retry", event.options().retryDuration());
+        if (options.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+            appendLine(sb, "retry", options.retryDuration());
         }
-        if (event.options().selector() != null && !event.options().selector().isEmpty()) {
-            appendDataLine(sb, Consts.SELECTOR_DATALINE_LITERAL, event.options().selector().trim());
+        if (options.selector() != null && !options.selector().isEmpty()) {
+            appendDataLine(sb, Consts.SELECTOR_DATALINE_LITERAL, options.selector().trim());
         }
-        if (event.options().mode() != null && !event.options().mode().equals(Consts.DEFAULT_ELEMENT_PATCH_MODE)) {
-            appendDataLine(sb, Consts.MODE_DATALINE_LITERAL, event.options().mode().value);
+        if (options.mode() != null && !options.mode().equals(Consts.DEFAULT_ELEMENT_PATCH_MODE)) {
+            appendDataLine(sb, Consts.MODE_DATALINE_LITERAL, options.mode().value);
         }
-        if (event.options().useViewTransition()) {
+        if (options.useViewTransition()) {
             appendDataLine(sb, Consts.USE_VIEW_TRANSITION_DATALINE_LITERAL, "true");
         }
-        if (event.options().namespace() != null && !event.options().namespace().equals(Consts.DEFAULT_NAMESPACE)) {
-            appendDataLine(sb, Consts.NAMESPACE_DATALINE_LITERAL, event.options().namespace().value);
+        if (options.namespace() != null && !options.namespace().equals(Consts.DEFAULT_NAMESPACE)) {
+            appendDataLine(sb, Consts.NAMESPACE_DATALINE_LITERAL, options.namespace().value);
         }
 
         if (elements != null && !elements.isEmpty()) {
@@ -308,14 +378,14 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         sb.append("\n");
 
         if (properties.enableLogging() && log.isDebugEnabled()) {
-            log.debug("Formatted PatchElementsEvent with length {}", sb.length());
+            log.debug("Formatted 'datastar-patch-elements' event with length {}", sb.length());
         }
 
         return sb.toString();
     }
 
     /**
-     * Formats a PatchSignalsEvent into SSE wire format.
+     * Formats a ${@link DatastarEventType#PATCH_SIGNALS} event into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -331,22 +401,21 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * Only non-default values are included in the output. Multi-line JSON is split
      * with each line sent as a separate {@code data: signals} line.
      *
-     * @param event the patch signals event to format
+     * @param signals the JSON signals to patch
+     * @param options the patch options
      * @return the formatted SSE event
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7386">RFC 7386 JSON Merge Patch</a>
      */
-    private String formatPatchSignalsEvent(PatchSignalsEvent event) {
-        String signals = event.signals();
+    private String formatPatchSignalsEvent(String signals, PatchSignalConfig options) {
         int initialCapacity = 128 + (signals == null ? 0 : Math.min(signals.length(), 4096));
         StringBuilder sb = new StringBuilder(initialCapacity);
 
         appendLine(sb, "event", DatastarEventType.PATCH_SIGNALS.value);
 
-        PatchSignalOptions options = event.options();
         if (options.eventId() != null) {
             appendLine(sb, "id", options.eventId());
         }
-        if (options.retryDuration() != null && !options.retryDuration().equals(Consts.DEFAULT_SSE_RETRY_DURATION_MS)) {
+        if (options.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
             appendLine(sb, "retry", options.retryDuration());
         }
 
@@ -360,7 +429,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         sb.append("\n");
 
         if (properties.enableLogging() && log.isDebugEnabled()) {
-            log.debug("Formatted PatchSignalsEvent into SSE event, with length: {}", sb.length());
+            log.debug("Formatted 'datastar-patch-signals' event into SSE event, with length: {}", sb.length());
         }
 
         return sb.toString();

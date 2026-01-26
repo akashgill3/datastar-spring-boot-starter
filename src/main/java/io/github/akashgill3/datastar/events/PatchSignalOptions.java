@@ -3,60 +3,54 @@ package io.github.akashgill3.datastar.events;
 import io.github.akashgill3.datastar.Consts;
 
 /**
- * Options for {@link PatchSignalsEvent}.
+ * Options for {@code 'datastar-patch-signals'} event.
  * <p>
- * These options control SSE delivery (event id and retry duration) and how the
- * incoming signal payload is applied.
+ * This class provides configuration options for signal patch events, controlling
+ * SSE delivery (event id and retry duration) and how the incoming signal payload
+ * is applied.
  * <p>
- * When {@link #onlyIfMissing()} is enabled, the patch is applied conditionally:
+ * When {@link #isOnlyIfMissing()} returns {@code true}, the patch is applied conditionally:
  * signals are only set if they do not already exist on the client.
  * <p>
  * Typical usage:
  * <pre>
- * PatchSignalOptions options = PatchSignalOptions.builder()
+ * sseEmitter.patchSignals(signals, options -> options
  *     .eventId("signals-1")
  *     .onlyIfMissing(true)
- *     .retryDuration(1000L)
- *     .build();
+ *     .retryDuration(1000L));
  * </pre>
  *
- * @param eventId       optional SSE event id
- * @param onlyIfMissing apply only if the target signals are missing (Default: {@code false})
- * @param retryDuration SSE retry duration in milliseconds (Default: {@code 1000ms})
  * @author Akash Gill
  */
-public record PatchSignalOptions(String eventId, boolean onlyIfMissing, Long retryDuration) {
-    public static final PatchSignalOptions DEFAULT = PatchSignalOptions.builder().build();
+public class PatchSignalOptions {
+    private String eventId;
+    private long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
+    private boolean onlyIfMissing = Consts.DEFAULT_PATCH_SIGNAL_ONLY_IF_MISSING;
 
-    public static Builder builder() {
-        return new Builder();
+    public PatchSignalOptions eventId(String eventId) {
+        this.eventId = eventId;
+        return this;
     }
 
-    public static class Builder {
-        private String eventId;
-        private boolean onlyIfMissing = Consts.DEFAULT_PATCH_SIGNAL_ONLY_IF_MISSING;
-        private Long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
+    public PatchSignalOptions retryDuration(Long retryDuration) {
+        this.retryDuration = retryDuration;
+        return this;
+    }
 
-        private Builder() {
-        }
+    public PatchSignalOptions onlyIfMissing(boolean onlyIfMissing) {
+        this.onlyIfMissing = onlyIfMissing;
+        return this;
+    }
 
-        public Builder eventId(String eventId) {
-            this.eventId = eventId;
-            return this;
-        }
+    public String getEventId() {
+        return eventId;
+    }
 
-        public Builder onlyIfMissing(boolean onlyIfMissing) {
-            this.onlyIfMissing = onlyIfMissing;
-            return this;
-        }
+    public long getRetryDuration() {
+        return retryDuration;
+    }
 
-        public Builder retryDuration(Long retryDuration) {
-            this.retryDuration = retryDuration;
-            return this;
-        }
-
-        public PatchSignalOptions build() {
-            return new PatchSignalOptions(eventId, onlyIfMissing, retryDuration);
-        }
+    public boolean isOnlyIfMissing() {
+        return onlyIfMissing;
     }
 }
