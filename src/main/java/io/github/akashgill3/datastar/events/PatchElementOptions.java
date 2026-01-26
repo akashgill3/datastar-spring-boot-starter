@@ -10,23 +10,13 @@ import io.github.akashgill3.datastar.Consts;
  * <p>
  * Typical usage:
  * <pre>
- * PatchElementOptions options = new PatchElementOptions()
+ * sseEmitter.patchElements(elements, options -> options
  *     .selector("#content")
  *     .mode(ElementPatchMode.Outer)
  *     .useViewTransition(true)
  *     .namespace(Namespace.HTML)
  *     .eventId("my-event-id")
- *     .retryDuration(1000L);
- * </pre>
- * <p>
- * Or using a Consumer pattern:
- * <pre>
- * PatchElementOptions options = new PatchElementOptions();
- * Consumer&lt;PatchElementOptions&gt; configurator = opt -&gt; opt
- *     .eventId("signals-1")
- *     .mode(ElementPatchMode.Inner)
- *     .retryDuration(1000L);
- * configurator.accept(options);
+ *     .retryDuration(1000L));
  * </pre>
  *
  * @author Akash Gill

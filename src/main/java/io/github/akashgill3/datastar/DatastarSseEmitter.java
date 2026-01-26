@@ -290,7 +290,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     // ========================================================================
 
     /**
-     * Formats a PatchElementsEvent into SSE wire format.
+     * Formats a ${@link DatastarEventType#PATCH_ELEMENTS} event into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -350,14 +350,14 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         sb.append("\n");
 
         if (properties.enableLogging() && log.isDebugEnabled()) {
-            log.debug("Formatted PatchElementsEvent with length {}", sb.length());
+            log.debug("Formatted 'datastar-patch-elements' event with length {}", sb.length());
         }
 
         return sb.toString();
     }
 
     /**
-     * Formats a PatchSignalsEvent into SSE wire format.
+     * Formats a ${@link DatastarEventType#PATCH_SIGNALS} event into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -401,7 +401,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         sb.append("\n");
 
         if (properties.enableLogging() && log.isDebugEnabled()) {
-            log.debug("Formatted PatchSignalsEvent into SSE event, with length: {}", sb.length());
+            log.debug("Formatted 'datastar-patch-signals' event into SSE event, with length: {}", sb.length());
         }
 
         return sb.toString();

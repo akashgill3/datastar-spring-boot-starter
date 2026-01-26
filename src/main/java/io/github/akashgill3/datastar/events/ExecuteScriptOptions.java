@@ -21,22 +21,11 @@ import java.util.List;
  * <p>
  * Typical usage:
  * <pre>
- * ExecuteScriptOptions options = new ExecuteScriptOptions()
+ * sseEmitter.executeScript(script, options -> options
  *     .autoRemove(true)
  *     .attribute("type", "module")
  *     .eventId("script-1")
- *     .retryDuration(1000L);
- * </pre>
- * <p>
- * Or using a Consumer pattern:
- * <pre>
- * ExecuteScriptOptions options = new ExecuteScriptOptions();
- * Consumer&lt;ExecuteScriptOptions&gt; configurator = opt -&gt; opt
- *     .autoRemove(true)
- *     .attribute("type", "module")
- *     .eventId("script-1")
- *     .retryDuration(1000L);
- * configurator.accept(options);
+ *     .retryDuration(1000L));
  * </pre>
  *
  * @author Akash Gill

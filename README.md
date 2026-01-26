@@ -26,22 +26,20 @@ public class SseController {
 
     @GetMapping(path = "/sse")
     public DatastarSseEmitter sse() {
-        DatastarSseEmitter sse = datastar.createEmitter();
+        DatastarSseEmitter sseEmitter = datastar.createEmitter();
         executor.execute(() -> {
             try {
-                PatchElementsEvent event = PatchElementsEvent.of("<div id=\"content\">Hello from Datastar</div>");
-                sse.patchElements(event);
+                sseEmitter.patchElements("<div id=\"content\">Hello from Datastar</div>");
 
-                PatchSignalsEvent signalEvent = PatchSignalsEvent.of("{\"message\":\"Hello from Datastar\"}");
-                sse.patchSignals(signalEvent);
+                sseEmitter.patchSignals("{\"message\":\"Hello from Datastar\"}");
 
-                sse.executeScript("alert(\"hello from the server\");");
-                sse.complete();
+                sseEmitter.executeScript("alert(\"hello from the server\");");
+                sseEmitter.complete();
             } catch (Exception e) {
-                sse.completeWithError(e);
+                sseEmitter.completeWithError(e);
             }
         });
-        return sse;
+        return sseEmitter;
     }
 }
 ```
@@ -52,15 +50,12 @@ public class SseController {
 
 ```java 
 import io.github.akashgill3.datastar.events.ElementPatchMode;
-import io.github.akashgill3.datastar.events.PatchElementOptions;
 
 // ...
-DatastarSseEmitter sse = datastar.createEmitter();
-        PatchElementOptions options = PatchElementOptions.builder().selector("#content").mode(ElementPatchMode.Outer).build();
-        PatchElementsEvent event = PatchElementsEvent.withOptions("<div>Updated</div>", options);
-sse.
-
-        patchElements(event);
+DatastarSseEmitter sseEmitter = datastar.createEmitter();
+sseEmitter.patchElements("<div>Updated</div>", options -> options
+        .selector("#content")
+        .mode(ElementPatchMode.Outer));
 // ...
 ```
 
@@ -70,42 +65,31 @@ sse.
 
 
 // ...
-String signals = """
-        { "user": { "id": 5432 } }
-        """;
-sse.
-
-        patchSignals(PatchSignalsEvent.of(signals));
+sseEmitter.patchSignals("{\"user\": {\"id\": 5432 }}");
 ```
 
 ### Execute script / console logging / navigation helpers
 
 ```java
 // Execute an arbitrary script
-sse.executeScript("console.log('Hello from server');");
+sseEmitter.executeScript("console.log('Hello from server');");
 
 // Convenience helpers 
-sse.consoleLog("This goes to the browser console"); 
-sse.consoleError("This is an error message"); 
-sse.redirect("/somewhere-else"); 
-sse.replaceUrl("/url-without-reload");
+sseEmitter.consoleLog("This goes to the browser console"); 
+sseEmitter.consoleError("This is an error message"); 
+sseEmitter.redirect("/somewhere-else"); 
+sseEmitter.replaceUrl("/url-without-reload");
 ```
 
 ### ExecuteScriptOptions (attributes, event id, retry)
 
 ```java
-
-import io.github.akashgill3.datastar.events.ExecuteScriptOptions;
-
 // ...
-ExecuteScriptOptions opts = ExecuteScriptOptions.builder()
+sseEmitter.executeScript("console.log('module script')", options -> options
         .autoRemove(true)
         .attribute("type", "module")
         .eventId("script-1")
-        .retryDuration(1000L)
-        .build();
-
-sse.executeScript("console.log('module script')", opts);
+        .retryDuration(1000L));
 ```
 
 ## Install (using JitPack)
@@ -160,14 +144,14 @@ Configure via `application.yml` / `application.properties` under the `datastar` 
 | Property                              | Default | Description                                                          |
 |---------------------------------------|--------:|----------------------------------------------------------------------|
 | `datastar.max-concurrent-connections` |  `1000` | Max number of concurrent SSE connections                             |
-| `datastar.debug-logging`              | `false` | Enables debug logs for formatted SSE events and connection lifecycle |
+| `datastar.enable-logging`             | `false` | Enables debug logs for formatted SSE events and connection lifecycle |
 
 Example:
 
 ``` yaml 
 datastar: 
     max-concurrent-connections: 1000
-    debug-logging: false
+    enable-logging: false
 ```
 
 ## Build

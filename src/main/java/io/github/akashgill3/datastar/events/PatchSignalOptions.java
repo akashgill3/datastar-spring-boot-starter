@@ -14,20 +14,10 @@ import io.github.akashgill3.datastar.Consts;
  * <p>
  * Typical usage:
  * <pre>
- * PatchSignalOptions options = new PatchSignalOptions()
+ * sseEmitter.patchSignals(signals, options -> options
  *     .eventId("signals-1")
  *     .onlyIfMissing(true)
- *     .retryDuration(1000L);
- * </pre>
- * <p>
- * Or using a Consumer pattern:
- * <pre>
- * PatchSignalOptions options = new PatchSignalOptions();
- * Consumer&lt;PatchSignalOptions&gt; configurator = opt -&gt; opt
- *     .eventId("signals-1")
- *     .onlyIfMissing(true)
- *     .retryDuration(1000L);
- * configurator.accept(options);
+ *     .retryDuration(1000L));
  * </pre>
  *
  * @author Akash Gill
