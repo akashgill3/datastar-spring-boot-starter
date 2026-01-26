@@ -16,7 +16,7 @@ import java.util.List;
  * Note: This is not a Datastar event type. {@link DatastarSseEmitter#executeScript} is a convenience method
  * that internally uses {@link DatastarEventType#PATCH_ELEMENTS} to inject a script tag.
  * <p>
- * When {@link #autoRemove(Boolean)} is set to {@code true}, the script tag is automatically removed
+ * When {@link #autoRemove(boolean)} is set to {@code true}, the script tag is automatically removed
  * from the DOM after execution (Default: {@code true}).
  * <p>
  * Typical usage:
@@ -31,12 +31,22 @@ import java.util.List;
  * @author Akash Gill
  */
 public class ExecuteScriptOptions {
-    private Boolean autoRemove = Consts.DEFAULT_EXECUTE_AUTO_REMOVE;
-    private final List<String> attributes = new ArrayList<>();
     private String eventId;
-    private Long retryDuration;
+    private long retryDuration;
+    private boolean autoRemove = Consts.DEFAULT_EXECUTE_AUTO_REMOVE;
+    private final List<String> attributes = new ArrayList<>();
 
-    public ExecuteScriptOptions autoRemove(Boolean autoRemove) {
+    public ExecuteScriptOptions eventId(String eventId) {
+        this.eventId = eventId;
+        return this;
+    }
+
+    public ExecuteScriptOptions retryDuration(long retryDuration) {
+        this.retryDuration = retryDuration;
+        return this;
+    }
+
+    public ExecuteScriptOptions autoRemove(boolean autoRemove) {
         this.autoRemove = autoRemove;
         return this;
     }
@@ -56,29 +66,19 @@ public class ExecuteScriptOptions {
         return this;
     }
 
-    public ExecuteScriptOptions eventId(String eventId) {
-        this.eventId = eventId;
-        return this;
+    public String getEventId() {
+        return eventId;
     }
 
-    public ExecuteScriptOptions retryDuration(Long retryDuration) {
-        this.retryDuration = retryDuration;
-        return this;
+    public long getRetryDuration() {
+        return retryDuration;
     }
 
-    public Boolean getAutoRemove() {
+    public boolean getAutoRemove() {
         return autoRemove;
     }
 
     public List<String> getAttributes() {
         return attributes;
-    }
-
-    public String getEventId() {
-        return eventId;
-    }
-
-    public Long getRetryDuration() {
-        return retryDuration;
     }
 }

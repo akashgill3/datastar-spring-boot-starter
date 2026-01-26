@@ -24,16 +24,11 @@ import io.github.akashgill3.datastar.Consts;
  */
 public class PatchSignalOptions {
     private String eventId;
+    private long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
     private boolean onlyIfMissing = Consts.DEFAULT_PATCH_SIGNAL_ONLY_IF_MISSING;
-    private Long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
 
     public PatchSignalOptions eventId(String eventId) {
         this.eventId = eventId;
-        return this;
-    }
-
-    public PatchSignalOptions onlyIfMissing(boolean onlyIfMissing) {
-        this.onlyIfMissing = onlyIfMissing;
         return this;
     }
 
@@ -42,15 +37,20 @@ public class PatchSignalOptions {
         return this;
     }
 
+    public PatchSignalOptions onlyIfMissing(boolean onlyIfMissing) {
+        this.onlyIfMissing = onlyIfMissing;
+        return this;
+    }
+
     public String getEventId() {
         return eventId;
     }
 
-    public boolean isOnlyIfMissing() {
-        return onlyIfMissing;
+    public long getRetryDuration() {
+        return retryDuration;
     }
 
-    public Long getRetryDuration() {
-        return retryDuration;
+    public boolean isOnlyIfMissing() {
+        return onlyIfMissing;
     }
 }

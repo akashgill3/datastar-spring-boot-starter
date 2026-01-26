@@ -72,8 +72,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter patchElements(String elements, Consumer<PatchElementOptions> options) throws IOException {
-        PatchElementOptions opts = new PatchElementOptions();
-        options.accept(opts);
+        PatchElementConfig opts = PatchElementConfig.from(options);
         super.send(formatPatchElementsEvent(elements, opts), TEXT_PLAIN);
         return this;
     }
@@ -99,8 +98,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter patchSignals(String signals, Consumer<PatchSignalOptions> config) throws IOException {
-        PatchSignalOptions opts = new PatchSignalOptions();
-        config.accept(opts);
+        PatchSignalConfig opts = PatchSignalConfig.from(config);
         super.send(formatPatchSignalsEvent(signals, opts), TEXT_PLAIN);
         return this;
     }
@@ -134,18 +132,17 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @throws IOException if an I/O error occurs
      */
     public DatastarSseEmitter executeScript(String script, Consumer<ExecuteScriptOptions> options) throws IOException {
-        ExecuteScriptOptions exOpts = new ExecuteScriptOptions();
-        options.accept(exOpts);
-        String element = buildScriptElement(script, exOpts.getAutoRemove(), exOpts.getAttributes());
+        ExecuteScriptConfig opts = ExecuteScriptConfig.from(options);
+        String element = buildScriptElement(script, opts.autoRemove(), opts.attributes());
 
         Consumer<PatchElementOptions> patchElementOptionsConsumer = patchElementOptions -> {
             patchElementOptions.selector("body")
                     .mode(ElementPatchMode.Append);
-            if (exOpts.getEventId() != null && !exOpts.getEventId().isEmpty()) {
-                patchElementOptions.eventId(exOpts.getEventId());
+            if (opts.eventId() != null && !opts.eventId().isEmpty()) {
+                patchElementOptions.eventId(opts.eventId());
             }
-            if (exOpts.getRetryDuration() != null) {
-                patchElementOptions.retryDuration(exOpts.getRetryDuration());
+            if (opts.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+                patchElementOptions.retryDuration(opts.retryDuration());
             }
         };
 
@@ -286,6 +283,37 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     }
 
     // ========================================================================
+    // Internal Records
+    // ========================================================================
+
+    private record PatchElementConfig(String eventId, long retryDuration, String selector, ElementPatchMode mode,
+                                      boolean useViewTransition, Namespace namespace) {
+        static PatchElementConfig from(Consumer<PatchElementOptions> config) {
+            PatchElementOptions opts = new PatchElementOptions();
+            config.accept(opts);
+            return new PatchElementConfig(opts.getEventId(), opts.getRetryDuration(), opts.getSelector(), opts.getMode(),
+                    opts.isUseViewTransition(), opts.getNamespace());
+        }
+    }
+
+    private record PatchSignalConfig(String eventId, long retryDuration, boolean onlyIfMissing) {
+        static PatchSignalConfig from(Consumer<PatchSignalOptions> config) {
+            PatchSignalOptions opts = new PatchSignalOptions();
+            config.accept(opts);
+            return new PatchSignalConfig(opts.getEventId(), opts.getRetryDuration(), opts.isOnlyIfMissing());
+        }
+    }
+
+    private record ExecuteScriptConfig(String eventId, long retryDuration, boolean autoRemove,
+                                       List<String> attributes) {
+        static ExecuteScriptConfig from(Consumer<ExecuteScriptOptions> config) {
+            ExecuteScriptOptions opts = new ExecuteScriptOptions();
+            config.accept(opts);
+            return new ExecuteScriptConfig(opts.getEventId(), opts.getRetryDuration(), opts.getAutoRemove(), opts.getAttributes());
+        }
+    }
+
+    // ========================================================================
     // Internal Formatting Methods
     // ========================================================================
 
@@ -319,29 +347,29 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return the formatted SSE event
      * @see <a href="https://data-star.dev/reference/sse_events#datastar-patch-elements">Datastar Reference</a>
      */
-    private String formatPatchElementsEvent(String elements, PatchElementOptions options) {
+    private String formatPatchElementsEvent(String elements, PatchElementConfig options) {
         int initialCapacity = 128 + (elements == null ? 0 : Math.min(elements.length(), 4096));
         StringBuilder sb = new StringBuilder(initialCapacity);
 
         appendLine(sb, "event", DatastarEventType.PATCH_ELEMENTS.value);
 
-        if (options.getEventId() != null) {
-            appendLine(sb, "id", options.getEventId());
+        if (options.eventId() != null) {
+            appendLine(sb, "id", options.eventId());
         }
-        if (options.getRetryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
-            appendLine(sb, "retry", options.getRetryDuration());
+        if (options.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+            appendLine(sb, "retry", options.retryDuration());
         }
-        if (options.getSelector() != null && !options.getSelector().isEmpty()) {
-            appendDataLine(sb, Consts.SELECTOR_DATALINE_LITERAL, options.getSelector().trim());
+        if (options.selector() != null && !options.selector().isEmpty()) {
+            appendDataLine(sb, Consts.SELECTOR_DATALINE_LITERAL, options.selector().trim());
         }
-        if (options.getMode() != null && !options.getMode().equals(Consts.DEFAULT_ELEMENT_PATCH_MODE)) {
-            appendDataLine(sb, Consts.MODE_DATALINE_LITERAL, options.getMode().value);
+        if (options.mode() != null && !options.mode().equals(Consts.DEFAULT_ELEMENT_PATCH_MODE)) {
+            appendDataLine(sb, Consts.MODE_DATALINE_LITERAL, options.mode().value);
         }
-        if (options.isUseViewTransition()) {
+        if (options.useViewTransition()) {
             appendDataLine(sb, Consts.USE_VIEW_TRANSITION_DATALINE_LITERAL, "true");
         }
-        if (options.getNamespace() != null && !options.getNamespace().equals(Consts.DEFAULT_NAMESPACE)) {
-            appendDataLine(sb, Consts.NAMESPACE_DATALINE_LITERAL, options.getNamespace().value);
+        if (options.namespace() != null && !options.namespace().equals(Consts.DEFAULT_NAMESPACE)) {
+            appendDataLine(sb, Consts.NAMESPACE_DATALINE_LITERAL, options.namespace().value);
         }
 
         if (elements != null && !elements.isEmpty()) {
@@ -378,20 +406,20 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      * @return the formatted SSE event
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7386">RFC 7386 JSON Merge Patch</a>
      */
-    private String formatPatchSignalsEvent(String signals, PatchSignalOptions options) {
+    private String formatPatchSignalsEvent(String signals, PatchSignalConfig options) {
         int initialCapacity = 128 + (signals == null ? 0 : Math.min(signals.length(), 4096));
         StringBuilder sb = new StringBuilder(initialCapacity);
 
         appendLine(sb, "event", DatastarEventType.PATCH_SIGNALS.value);
 
-        if (options.getEventId() != null) {
-            appendLine(sb, "id", options.getEventId());
+        if (options.eventId() != null) {
+            appendLine(sb, "id", options.eventId());
         }
-        if (options.getRetryDuration() != null && !options.getRetryDuration().equals(Consts.DEFAULT_SSE_RETRY_DURATION_MS)) {
-            appendLine(sb, "retry", options.getRetryDuration());
+        if (options.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+            appendLine(sb, "retry", options.retryDuration());
         }
 
-        if (options.isOnlyIfMissing()) {
+        if (options.onlyIfMissing()) {
             appendDataLine(sb, Consts.ONLY_IF_MISSING_DATALINE_LITERAL, true);
         }
 
