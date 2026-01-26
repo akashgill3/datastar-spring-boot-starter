@@ -1,87 +1,95 @@
 package io.github.akashgill3.datastar.events;
 
 import io.github.akashgill3.datastar.Consts;
+import io.github.akashgill3.datastar.DatastarSseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Options for executing JavaScript in the browser.
+ * Configuration options for executing JavaScript in the browser.
  * <p>
- * These options control how the script tag is injected and managed, along with
- * SSE delivery options (event id and retry duration).
+ * This class provides configuration options for script execution, controlling
+ * how the script tag is injected and managed, along with SSE delivery options
+ * (event ID and retry duration).
  * <p>
- * Note: This is not a Datastar event type. ExecuteScript is a convenience method
- * that internally uses {@link PatchElementsEvent} to inject a script tag.
+ * Note: This is not a Datastar event type. {@link DatastarSseEmitter#executeScript} is a convenience method
+ * that internally uses {@link DatastarEventType#PATCH_ELEMENTS} to inject a script tag.
  * <p>
- * When {@link #autoRemove()} is enabled, the script tag is automatically removed
+ * When {@link #autoRemove(Boolean)} is set to {@code true}, the script tag is automatically removed
  * from the DOM after execution (Default: {@code true}).
  * <p>
  * Typical usage:
  * <pre>
- * ExecuteScriptOptions options = ExecuteScriptOptions.builder()
+ * ExecuteScriptOptions options = new ExecuteScriptOptions()
  *     .autoRemove(true)
  *     .attribute("type", "module")
  *     .eventId("script-1")
- *     .retryDuration(1000L)
- *     .build();
+ *     .retryDuration(1000L);
+ * </pre>
+ * <p>
+ * Or using a Consumer pattern:
+ * <pre>
+ * ExecuteScriptOptions options = new ExecuteScriptOptions();
+ * Consumer&lt;ExecuteScriptOptions&gt; configurator = opt -&gt; opt
+ *     .autoRemove(true)
+ *     .attribute("type", "module")
+ *     .eventId("script-1")
+ *     .retryDuration(1000L);
+ * configurator.accept(options);
  * </pre>
  *
- * @param autoRemove    automatically remove script tag after execution (Default: {@code true})
- * @param attributes    list of HTML attributes to apply to the script tag
- * @param eventId       optional SSE event id
- * @param retryDuration SSE retry duration in milliseconds (Default: {@code 1000ms})
  * @author Akash Gill
  */
-public record ExecuteScriptOptions(Boolean autoRemove, List<String> attributes, String eventId,
-                                   Long retryDuration) {
-    public static final ExecuteScriptOptions DEFAULT = ExecuteScriptOptions.builder().build();
+public class ExecuteScriptOptions {
+    private Boolean autoRemove = Consts.DEFAULT_EXECUTE_AUTO_REMOVE;
+    private final List<String> attributes = new ArrayList<>();
+    private String eventId;
+    private Long retryDuration;
 
-    public static Builder builder() {
-        return new Builder();
+    public ExecuteScriptOptions autoRemove(Boolean autoRemove) {
+        this.autoRemove = autoRemove;
+        return this;
     }
 
-    public static class Builder {
-        private Boolean autoRemove = Consts.DEFAULT_EXECUTE_AUTO_REMOVE;
-        private final List<String> attributes = new ArrayList<>();
-        private String eventId;
-        private Long retryDuration;
+    public ExecuteScriptOptions attribute(String key, String value) {
+        this.attributes.add("%s=\"%s\"".formatted(key, value));
+        return this;
+    }
 
-        private Builder() {
-        }
+    public ExecuteScriptOptions attribute(String attribute) {
+        this.attributes.add(attribute);
+        return this;
+    }
 
-        public Builder autoRemove(Boolean autoRemove) {
-            this.autoRemove = autoRemove;
-            return this;
-        }
+    public ExecuteScriptOptions attributes(List<String> attributes) {
+        this.attributes.addAll(attributes);
+        return this;
+    }
 
-        public Builder attribute(String key, String value) {
-            this.attributes.add("%s=\"%s\"".formatted(key, value));
-            return this;
-        }
+    public ExecuteScriptOptions eventId(String eventId) {
+        this.eventId = eventId;
+        return this;
+    }
 
-        public Builder attribute(String attribute) {
-            this.attributes.add(attribute);
-            return this;
-        }
+    public ExecuteScriptOptions retryDuration(Long retryDuration) {
+        this.retryDuration = retryDuration;
+        return this;
+    }
 
-        public Builder attributes(List<String> attributes) {
-            this.attributes.addAll(attributes);
-            return this;
-        }
+    public Boolean getAutoRemove() {
+        return autoRemove;
+    }
 
-        public Builder eventId(String eventId) {
-            this.eventId = eventId;
-            return this;
-        }
+    public List<String> getAttributes() {
+        return attributes;
+    }
 
-        public Builder retryDuration(Long retryDuration) {
-            this.retryDuration = retryDuration;
-            return this;
-        }
+    public String getEventId() {
+        return eventId;
+    }
 
-        public ExecuteScriptOptions build() {
-            return new ExecuteScriptOptions(autoRemove, List.copyOf(attributes), eventId, retryDuration);
-        }
+    public Long getRetryDuration() {
+        return retryDuration;
     }
 }

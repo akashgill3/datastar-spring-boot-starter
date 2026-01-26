@@ -12,38 +12,37 @@ package com.example.demo;
 
 import io.github.akashgill3.datastar.Datastar;
 import io.github.akashgill3.datastar.DatastarSseEmitter;
-import io.github.akashgill3.datastar.events.PatchElementsEvent;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class SseController {
-  private final Datastar datastar;
-  private final Executor executor = Executors.newVirtualThreadPerTaskExecutor();
+    private final Datastar datastar;
+    private final Executor executor = Executors.newVirtualThreadPerTaskExecutor();
 
-  public SseController(Datastar datastar) {
-    this.datastar = datastar;
-  }
+    public SseController(Datastar datastar) {
+        this.datastar = datastar;
+    }
 
-  @GetMapping(path = "/sse")
-  public DatastarSseEmitter sse() {
-    DatastarSseEmitter sse = datastar.createEmitter();
-    executor.execute(() -> {
-      try {
-        PatchElementsEvent event = PatchElementsEvent.of("<div id=\"content\">Hello from Datastar</div>");
-        sse.patchElements(event);
-        
-        PatchSignalsEvent signalEvent = PatchSignalsEvent.of("{\"message\":\"Hello from Datastar\"}");
-        sse.patchSignals(signalEvent);
-        
-        sse.executeScript("alert(\"hello from the server\");");
-        sse.complete();
-      } catch (Exception e) {
-        sse.completeWithError(e);
-      }
-    });
-    return sse;
-  }
+    @GetMapping(path = "/sse")
+    public DatastarSseEmitter sse() {
+        DatastarSseEmitter sse = datastar.createEmitter();
+        executor.execute(() -> {
+            try {
+                PatchElementsEvent event = PatchElementsEvent.of("<div id=\"content\">Hello from Datastar</div>");
+                sse.patchElements(event);
+
+                PatchSignalsEvent signalEvent = PatchSignalsEvent.of("{\"message\":\"Hello from Datastar\"}");
+                sse.patchSignals(signalEvent);
+
+                sse.executeScript("alert(\"hello from the server\");");
+                sse.complete();
+            } catch (Exception e) {
+                sse.completeWithError(e);
+            }
+        });
+        return sse;
+    }
 }
 ```
 
@@ -54,26 +53,29 @@ public class SseController {
 ```java 
 import io.github.akashgill3.datastar.events.ElementPatchMode;
 import io.github.akashgill3.datastar.events.PatchElementOptions;
-import io.github.akashgill3.datastar.events.PatchElementsEvent;
 
 // ...
 DatastarSseEmitter sse = datastar.createEmitter();
-PatchElementOptions options = PatchElementOptions.builder().selector("#content").mode(ElementPatchMode.Outer).build();
-PatchElementsEvent event = PatchElementsEvent.withOptions("<div>Updated</div>",options);
-sse.patchElements(event);
+        PatchElementOptions options = PatchElementOptions.builder().selector("#content").mode(ElementPatchMode.Outer).build();
+        PatchElementsEvent event = PatchElementsEvent.withOptions("<div>Updated</div>", options);
+sse.
+
+        patchElements(event);
 // ...
 ```
 
 ### Patch signals
 
 ```java
-import io.github.akashgill3.datastar.events.PatchSignalsEvent;
+
 
 // ...
 String signals = """
         { "user": { "id": 5432 } }
         """;
-sse.patchSignals(PatchSignalsEvent.of(signals));
+sse.
+
+        patchSignals(PatchSignalsEvent.of(signals));
 ```
 
 ### Execute script / console logging / navigation helpers
