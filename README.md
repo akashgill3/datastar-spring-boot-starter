@@ -1,19 +1,30 @@
 # Datastar Spring Boot Starter
 
-A lightweight **Spring Boot starter** that autoconfigures a `Datastar` helper for **Server-Sent Events (SSE)**
-integrations, with simple event types for patching elements and signals.
+[![JitPack](https://jitpack.io/v/akashgill3/datastar-spring-boot-starter.svg)](https://jitpack.io/#akashgill3/datastar-spring-boot-starter)
 
-## Quick start
+[Datastar](https://data-star.dev/) is a lightweight hypermedia framework for building everything from simple sites to
+real-time collaborative web apps.
 
-Create an SSE endpoint that returns a `DatastarSseEmitter` and write events asynchronously.
+This **Spring Boot Starter** provides everything you need to integrate Datastar into your applications. It handles the
+low-level Server-Sent Events (SSE) protocol and provides a clean, type-safe API for patching the DOM and managing
+client-side state directly from your Spring controllers.
 
-```java 
-package com.example.demo;
+## Features
 
-import io.github.akashgill3.datastar.Datastar;
-import io.github.akashgill3.datastar.DatastarSseEmitter;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+- **`DatastarSseEmitter`**: A specialized `SseEmitter` implementation that follows the Datastar SDK specification.
+- **Fluent API**: Easily send element patches, signal updates, and execute scripts using a minimal API with defaults
+  and functional configuration options.
+- **Spring Boot Autoconfiguration**: Zero-configuration setup for common use cases.
+- **Lifecycle Management**: Built-in tracking of concurrent connections and robust error handling.
+- **Asynchronous & Virtual Thread Friendly**: Designed to work seamlessly with Spring's async support and Java 21+
+  virtual threads.
+
+## Quick Start
+
+1. **Add the dependency** (see [Installation](#installation-using-jitpack) below).
+2. **Create a Controller** that returns a `DatastarSseEmitter`.
+
+```java
 
 @RestController
 public class SseController {
@@ -24,80 +35,95 @@ public class SseController {
         this.datastar = datastar;
     }
 
-    @GetMapping(path = "/sse")
+    @GetMapping(path = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public DatastarSseEmitter sse() {
         DatastarSseEmitter sseEmitter = datastar.createEmitter();
+
         executor.execute(() -> {
             try {
-                sseEmitter.patchElements("<div id=\"content\">Hello from Datastar</div>");
+                // 1. Patch the DOM
+                sseEmitter.patchElements("<div id=\"content\">Hello from Datastar!</div>");
 
-                sseEmitter.patchSignals("{\"message\":\"Hello from Datastar\"}");
+                // 2. Update client-side signals (state)
+                sseEmitter.patchSignals("{\"message\": \"Updated state\"}");
 
-                sseEmitter.executeScript("alert(\"hello from the server\");");
+                // 3. Execute a script
+                sseEmitter.executeScript("alert('Action performed!')");
+
                 sseEmitter.complete();
             } catch (Exception e) {
                 sseEmitter.completeWithError(e);
             }
         });
+
         return sseEmitter;
     }
 }
 ```
 
-## Sending events
+## Sending Events
 
-### Patch DOM elements
+### Patch DOM Elements
 
-```java 
+The core of Datastar is patching the DOM. You can send any HTML fragment, and Datastar will efficiently update the
+browser.
+
+```java
 import io.github.akashgill3.datastar.events.ElementPatchMode;
 
-// ...
-DatastarSseEmitter sseEmitter = datastar.createEmitter();
-sseEmitter.patchElements("<div>Updated</div>", options -> options
-        .selector("#content")
-        .mode(ElementPatchMode.Outer));
-// ...
+sseEmitter.patchElements("""
+    <div id="status" class="alert">
+        Operation successful!
+    </div>
+    """,options ->options
+        .
+
+selector("#status-bar")
+        .
+
+mode(ElementPatchMode.Append)
+        .
+
+useViewTransition(true)
+);
 ```
 
-### Patch signals
+### Patch Signals
+
+Update the client-side state (signals) using JSON Merge Patch.
 
 ```java
-
-
-// ...
-sseEmitter.patchSignals("{\"user\": {\"id\": 5432 }}");
+sseEmitter.patchSignals("{ \"user\": { \"isLoggedIn\": true } }");
 ```
 
-### Execute script / console logging / navigation helpers
+### Navigation & Scripting
+
+Helper methods for common client-side actions.
 
 ```java
-// Execute an arbitrary script
-sseEmitter.executeScript("console.log('Hello from server');");
+sseEmitter.executeScript("alert('Action performed!')");
+sseEmitter.
 
-// Convenience helpers 
-sseEmitter.consoleLog("This goes to the browser console"); 
-sseEmitter.consoleError("This is an error message"); 
-sseEmitter.redirect("/somewhere-else"); 
-sseEmitter.replaceUrl("/url-without-reload");
+redirect("/dashboard");
+sseEmitter.
+
+replaceUrl("/new-path");
+sseEmitter.
+
+consoleLog("Debugging info");
+sseEmitter.
+
+consoleError("Error message");
 ```
 
-### ExecuteScriptOptions (attributes, event id, retry)
-
-```java
-// ...
-sseEmitter.executeScript("console.log('module script')", options -> options
-        .autoRemove(true)
-        .attribute("type", "module")
-        .eventId("script-1")
-        .retryDuration(1000L));
-```
-
-## Install (using JitPack)
+## Installation (using JitPack)
 
 ### Maven
-Add to `pom.xml`
+
+Add the repository and dependency to your `pom.xml`:
+
 ```xml
-<!--This repository is required-->
+
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -106,56 +132,50 @@ Add to `pom.xml`
 </repositories>
 
 <dependency>
-    <groupId>com.github.akashgill3</groupId>
-    <artifactId>datastar-spring-boot-starter</artifactId>
-    <version>0.2.0</version>
+<groupId>com.github.akashgill3</groupId>
+<artifactId>datastar-spring-boot-starter</artifactId>
+<version>0.2.0</version>
 </dependency>
 ```
 
 ### Gradle
-Add it in your root settings.gradle at the end of repositories:
-```groovy
-//Add it in your root settings.gradle at the end of repositories:
-dependencyResolutionManagement {
-  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-  repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
-  }
-}
 
+Add the repository to `settings.gradle`:
+
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+And the dependency to `build.gradle`:
+
+```groovy
 dependencies {
     implementation 'com.github.akashgill3:datastar-spring-boot-starter:0.2.0'
 }
 ```
 
+## Configuration
 
+Configure behavior in your `application.yml` or `application.properties`:
+
+| Property                              | Default | Description                                                                 |
+|:--------------------------------------|:--------|:----------------------------------------------------------------------------|
+| `datastar.max-concurrent-connections` | `1000`  | Limits the number of active SSE connections to prevent resource exhaustion. |
+| `datastar.enable-logging`             | `false` | Enables detailed debug logging for every SSE event sent.                    |
 
 ## Requirements
 
-- Java **21**
-- Spring Boot **4.x**
-- Maven (or use the included Maven Wrapper)
-
-## Configuration
-
-Configure via `application.yml` / `application.properties` under the `datastar` prefix:
-
-| Property                              | Default | Description                                                          |
-|---------------------------------------|--------:|----------------------------------------------------------------------|
-| `datastar.max-concurrent-connections` |  `1000` | Max number of concurrent SSE connections                             |
-| `datastar.enable-logging`             | `false` | Enables debug logs for formatted SSE events and connection lifecycle |
-
-Example:
-
-``` yaml 
-datastar: 
-    max-concurrent-connections: 1000
-    enable-logging: false
-```
+- **Java 21+**
+- **Spring Boot 4.x**
 
 ## Build
 
-``` bash 
+```bash
 ./mvnw clean verify
-``` 
+```
