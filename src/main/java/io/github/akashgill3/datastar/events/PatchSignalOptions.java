@@ -24,7 +24,7 @@ import io.github.akashgill3.datastar.Consts;
  */
 public class PatchSignalOptions {
     private String eventId;
-    private long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
+    private Long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
     private boolean onlyIfMissing = Consts.DEFAULT_PATCH_SIGNAL_ONLY_IF_MISSING;
 
     public PatchSignalOptions eventId(String eventId) {
@@ -46,7 +46,7 @@ public class PatchSignalOptions {
         return eventId;
     }
 
-    public long getRetryDuration() {
+    public Long getRetryDuration() {
         return retryDuration;
     }
 

@@ -141,7 +141,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
             if (opts.eventId() != null && !opts.eventId().isEmpty()) {
                 patchElementOptions.eventId(opts.eventId());
             }
-            if (opts.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+            if (opts.retryDuration() != null && opts.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
                 patchElementOptions.retryDuration(opts.retryDuration());
             }
         };
@@ -286,7 +286,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     // Internal Records
     // ========================================================================
 
-    private record PatchElementConfig(String eventId, long retryDuration, String selector, ElementPatchMode mode,
+    private record PatchElementConfig(String eventId, Long retryDuration, String selector, ElementPatchMode mode,
                                       boolean useViewTransition, Namespace namespace) {
         static PatchElementConfig from(Consumer<PatchElementOptions> config) {
             PatchElementOptions opts = new PatchElementOptions();
@@ -296,7 +296,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         }
     }
 
-    private record PatchSignalConfig(String eventId, long retryDuration, boolean onlyIfMissing) {
+    private record PatchSignalConfig(String eventId, Long retryDuration, boolean onlyIfMissing) {
         static PatchSignalConfig from(Consumer<PatchSignalOptions> config) {
             PatchSignalOptions opts = new PatchSignalOptions();
             config.accept(opts);
@@ -304,7 +304,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         }
     }
 
-    private record ExecuteScriptConfig(String eventId, long retryDuration, boolean autoRemove,
+    private record ExecuteScriptConfig(String eventId, Long retryDuration, boolean autoRemove,
                                        List<String> attributes) {
         static ExecuteScriptConfig from(Consumer<ExecuteScriptOptions> config) {
             ExecuteScriptOptions opts = new ExecuteScriptOptions();
@@ -318,7 +318,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     // ========================================================================
 
     /**
-     * Formats a ${@link DatastarEventType#PATCH_ELEMENTS} event into SSE wire format.
+     * Formats a {@link DatastarEventType#PATCH_ELEMENTS} event into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -356,7 +356,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         if (options.eventId() != null) {
             appendLine(sb, "id", options.eventId());
         }
-        if (options.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+        if (options.retryDuration() != null && options.retryDuration != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
             appendLine(sb, "retry", options.retryDuration());
         }
         if (options.selector() != null && !options.selector().isEmpty()) {
@@ -385,7 +385,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
     }
 
     /**
-     * Formats a ${@link DatastarEventType#PATCH_SIGNALS} event into SSE wire format.
+     * Formats a {@link DatastarEventType#PATCH_SIGNALS} event into SSE wire format.
      * <p>
      * Generates an SSE event with the following structure:
      * <pre>
@@ -415,7 +415,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
         if (options.eventId() != null) {
             appendLine(sb, "id", options.eventId());
         }
-        if (options.retryDuration() != Consts.DEFAULT_SSE_RETRY_DURATION_MS) {
+        if (options.retryDuration() != null && !options.retryDuration().equals(Consts.DEFAULT_SSE_RETRY_DURATION_MS)) {
             appendLine(sb, "retry", options.retryDuration());
         }
 
@@ -464,7 +464,7 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
      *   <li>{@code signals} - JSON signal data</li>
      *   <li>{@code selector} - CSS selector</li>
      *   <li>{@code mode} - Patch mode</li>
-     *   <li>{@code namespace} - XML namespace</li>
+     *   <li>{@code namespace} - namespace</li>
      *   <li>{@code useViewTransition} - View transition flag</li>
      *   <li>{@code onlyIfMissing} - Conditional patch flag</li>
      * </ul>

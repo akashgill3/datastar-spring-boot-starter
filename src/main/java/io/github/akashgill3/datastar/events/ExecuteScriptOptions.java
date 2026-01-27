@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class ExecuteScriptOptions {
     private String eventId;
-    private long retryDuration;
+    private Long retryDuration;
     private boolean autoRemove = Consts.DEFAULT_EXECUTE_AUTO_REMOVE;
     private final List<String> attributes = new ArrayList<>();
 
@@ -41,7 +41,7 @@ public class ExecuteScriptOptions {
         return this;
     }
 
-    public ExecuteScriptOptions retryDuration(long retryDuration) {
+    public ExecuteScriptOptions retryDuration(Long retryDuration) {
         this.retryDuration = retryDuration;
         return this;
     }
@@ -70,7 +70,7 @@ public class ExecuteScriptOptions {
         return eventId;
     }
 
-    public long getRetryDuration() {
+    public Long getRetryDuration() {
         return retryDuration;
     }
 

@@ -23,7 +23,7 @@ import io.github.akashgill3.datastar.Consts;
  */
 public class PatchElementOptions {
     private String eventId;
-    private long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
+    private Long retryDuration = Consts.DEFAULT_SSE_RETRY_DURATION_MS;
     private String selector;
     private ElementPatchMode mode = Consts.DEFAULT_ELEMENT_PATCH_MODE;
     private boolean useViewTransition = Consts.DEFAULT_ELEMENTS_USE_VIEW_TRANSITIONS;
@@ -34,7 +34,7 @@ public class PatchElementOptions {
         return this;
     }
 
-    public PatchElementOptions retryDuration(long retryDuration) {
+    public PatchElementOptions retryDuration(Long retryDuration) {
         this.retryDuration = retryDuration;
         return this;
     }
@@ -63,7 +63,7 @@ public class PatchElementOptions {
         return eventId;
     }
 
-    public long getRetryDuration() {
+    public Long getRetryDuration() {
         return retryDuration;
     }
 
