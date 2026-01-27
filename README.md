@@ -6,14 +6,16 @@
 real-time collaborative web apps.
 
 This **Spring Boot Starter** provides everything you need to integrate Datastar into your applications. It handles the
-low-level Server-Sent Events (SSE) protocol and provides a clean, type-safe API for patching the DOM and managing
-client-side state directly from your Spring controllers.
+low-level Server-Sent Events (SSE) transport and exposes a clean, type-safe API for emitting Datastar protocol events
+directly from your Spring controllers.
 
 ## Features
 
-- **`DatastarSseEmitter`**: A specialized `SseEmitter` implementation that follows the Datastar SDK specification.
-- **Fluent API**: Easily send element patches, signal updates, and execute scripts using a minimal API with defaults
-  and functional configuration options.
+- **`DatastarSseEmitter`**: A Spring MVC–native, push-based emitter for streaming Datastar protocol events. While the
+  Datastar SDK refers to a `ServerSentEventGenerator`, Spring models long-lived responses as emitters; accordingly,
+  this class extends ResponseBodyEmitter and preserves Datastar’s custom wire format.
+- **Fluent API**: Easily emit element patches, signal updates, and script executions using a minimal API with sensible
+  defaults and functional configuration options.
 - **Spring Boot Autoconfiguration**: Zero-configuration setup for common use cases.
 - **Lifecycle Management**: Built-in tracking of concurrent connections and robust error handling.
 - **Asynchronous & Virtual Thread Friendly**: Designed to work seamlessly with Spring's async support and Java 21+
@@ -25,39 +27,38 @@ client-side state directly from your Spring controllers.
 2. **Create a Controller** that returns a `DatastarSseEmitter`.
 
 ```java
-
 @RestController
 public class SseController {
-    private final Datastar datastar;
-    private final Executor executor = Executors.newVirtualThreadPerTaskExecutor();
+  private final Datastar datastar;
+  private final Executor executor = Executors.newVirtualThreadPerTaskExecutor();
 
-    public SseController(Datastar datastar) {
-        this.datastar = datastar;
-    }
+  public SseController(Datastar datastar) {
+    this.datastar = datastar;
+  }
 
-    @GetMapping(path = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public DatastarSseEmitter sse() {
-        DatastarSseEmitter sseEmitter = datastar.createEmitter();
+  @GetMapping(path = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public DatastarSseEmitter sse() {
+    DatastarSseEmitter sseEmitter = datastar.createEmitter();
 
-        executor.execute(() -> {
-            try {
-                // 1. Patch the DOM
-                sseEmitter.patchElements("<div id=\"content\">Hello from Datastar!</div>");
+    executor.execute(() -> {
+      try {
+        // 1. Patch the DOM
+        sseEmitter.patchElements("<div id=\"content\">Hello from Datastar!</div>");
 
-                // 2. Update client-side signals (state)
-                sseEmitter.patchSignals("{\"message\": \"Updated state\"}");
+        // 2. Update client-side signals (state)
+        sseEmitter.patchSignals("{\"message\": \"Updated state\"}");
 
-                // 3. Execute a script
-                sseEmitter.executeScript("alert('Action performed!')");
+        // 3. Execute a script
+        sseEmitter.executeScript("alert('Action performed!')");
 
-                sseEmitter.complete();
-            } catch (Exception e) {
-                sseEmitter.completeWithError(e);
-            }
-        });
+        sseEmitter.complete();
+      } catch (Exception e) {
+        sseEmitter.completeWithError(e);
+      }
+    });
 
-        return sseEmitter;
-    }
+    return sseEmitter;
+  }
 }
 ```
 
@@ -71,21 +72,12 @@ browser.
 ```java
 import io.github.akashgill3.datastar.events.ElementPatchMode;
 
-sseEmitter.patchElements("""
+var html = """
     <div id="status" class="alert">
         Operation successful!
     </div>
-    """,options ->options
-        .
-
-selector("#status-bar")
-        .
-
-mode(ElementPatchMode.Append)
-        .
-
-useViewTransition(true)
-);
+    """;
+sseEmitter.patchElements(html, options -> options.selector("#status-bar").mode(ElementPatchMode.Append)); 
 ```
 
 ### Patch Signals
@@ -102,18 +94,10 @@ Helper methods for common client-side actions.
 
 ```java
 sseEmitter.executeScript("alert('Action performed!')");
-sseEmitter.
-
-redirect("/dashboard");
-sseEmitter.
-
-replaceUrl("/new-path");
-sseEmitter.
-
-consoleLog("Debugging info");
-sseEmitter.
-
-consoleError("Error message");
+sseEmitter.redirect("/dashboard");
+sseEmitter.replaceUrl("/new-path");
+sseEmitter.consoleLog("Debugging info");
+sseEmitter.consoleError("Error message");
 ```
 
 ## Installation (using JitPack)
@@ -123,7 +107,6 @@ consoleError("Error message");
 Add the repository and dependency to your `pom.xml`:
 
 ```xml
-
 <repositories>
     <repository>
         <id>jitpack.io</id>
