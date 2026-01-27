@@ -36,19 +36,22 @@ public class SseController {
     this.datastar = datastar;
   }
 
-  @GetMapping(path = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public DatastarSseEmitter sse() {
+  @PostMapping(path = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public DatastarSseEmitter sse(HttpServletRequest request) throws IOException {
+    // 1. Read signals from request
+    MySignals signals = datastar.readSignals(request, MySignals.class);
+    
     DatastarSseEmitter sseEmitter = datastar.createEmitter();
 
     executor.execute(() -> {
       try {
-        // 1. Patch the DOM
-        sseEmitter.patchElements("<div id=\"content\">Hello from Datastar!</div>");
+        // 2. Patch the DOM
+        sseEmitter.patchElements("<div id=\"content\">Hello " + signals.getName() + " from Datastar!</div>");
 
-        // 2. Update client-side signals (state)
+        // 3. Update client-side signals (state)
         sseEmitter.patchSignals("{\"message\": \"Updated state\"}");
 
-        // 3. Execute a script
+        // 4. Execute a script
         sseEmitter.executeScript("alert('Action performed!')");
 
         sseEmitter.complete();
@@ -59,6 +62,8 @@ public class SseController {
 
     return sseEmitter;
   }
+  
+  record MySignals(String name, String message) {}
 }
 ```
 
@@ -87,6 +92,17 @@ Update the client-side state (signals) using JSON Merge Patch.
 ```java
 sseEmitter.patchSignals("{ \"user\": { \"isLoggedIn\": true } }");
 ```
+
+### Receiving Signals
+
+Datastar sends signals back to the server as JSON. Use `readSignals` to parse them.
+
+```java
+// In your controller
+MySignals signals = datastar.readSignals(request, MySignals.class);
+```
+
+For `GET` requests, it automatically looks for the `datastar` query parameter. For other methods, it reads the request body.
 
 ### Navigation & Scripting
 
