@@ -20,6 +20,21 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <id>akashgill3</id>
+            <name>Akash Gill</name>
+            <email>akashgill3.ag@gmail.com</email>
+            <url>https://github.com/akashgill3</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/akashgill3/datastar-spring-boot-starter.git</connection>
+        <developerConnection>scm:git:ssh://github.com:akashgill3/datastar-spring-boot-starter.git</developerConnection>
+        <url>https://github.com/akashgill3/datastar-spring-boot-starter/tree/main</url>
+    </scm>
+
     <properties>
         <java.version>21</java.version>
         <maven.compiler.release>21</maven.compiler.release>
