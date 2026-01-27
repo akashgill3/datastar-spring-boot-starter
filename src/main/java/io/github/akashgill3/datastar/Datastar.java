@@ -1,6 +1,5 @@
 package io.github.akashgill3.datastar;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.akashgill3.datastar.autoconfigure.DatastarProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -10,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Manages server-sent event (SSE) emitters and enforces concurrent connection limits.
@@ -65,21 +65,18 @@ public class Datastar {
   private final DatastarProperties properties;
 
   /** ObjectMapper for JSON (un)marshalling. */
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /** Thread-safe counter tracking the number of currently active SSE connections. */
   private final AtomicInteger activeConnections = new AtomicInteger(0);
 
   /**
-   * Constructs a new Datastar instance with the specified configuration properties and
-   * ObjectMapper.
+   * Constructs a new Datastar instance with the specified configuration.
    *
    * @param properties the configuration properties for Datastar
-   * @param objectMapper the ObjectMapper for JSON operations
    */
-  public Datastar(DatastarProperties properties, ObjectMapper objectMapper) {
+  public Datastar(DatastarProperties properties) {
     this.properties = properties;
-    this.objectMapper = objectMapper;
   }
 
   /**
