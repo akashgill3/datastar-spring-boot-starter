@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.1] - 28-01-2026
+
+### Added
+
+- `deployment` profile for Maven Central deployment
+
+### Removed
+
+- Dependency on `spring-boot-starter-web` and others from initial project structure
+
+---
+
 ## [0.3.0] - 26-01-2026
 
 ### Changed

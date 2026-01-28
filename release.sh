@@ -16,11 +16,6 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
   exit 1
 fi
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "Working tree is dirty. Commit or stash changes first."
-  exit 1
-fi
-
 if git tag | grep -q "^$VERSION$"; then
   echo "Tag $VERSION already exists."
   exit 1
