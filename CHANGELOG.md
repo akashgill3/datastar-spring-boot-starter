@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.2] - 15-02-2026
+
+### Added
+
+- Test suite for core functionality
+
+### Removed
+
+- Max connection tracking from Datastar
+
+---
+
 ## [0.3.1] - 28-01-2026
 
 ### Added

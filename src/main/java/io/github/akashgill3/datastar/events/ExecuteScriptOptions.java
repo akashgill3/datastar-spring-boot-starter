@@ -43,6 +43,9 @@ public class ExecuteScriptOptions {
   }
 
   public ExecuteScriptOptions retryDuration(Long retryDuration) {
+    if (retryDuration != null && retryDuration < 0) {
+      throw new IllegalArgumentException("retryDuration must be >= 0");
+    }
     this.retryDuration = retryDuration;
     return this;
   }

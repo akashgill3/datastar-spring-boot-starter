@@ -7,7 +7,8 @@ import io.github.akashgill3.datastar.events.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
-import org.springframework.lang.NonNull;
+
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;

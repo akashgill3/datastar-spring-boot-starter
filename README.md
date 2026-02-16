@@ -1,6 +1,6 @@
 # Datastar Spring Boot Starter
 
-[![JitPack](https://jitpack.io/v/akashgill3/datastar-spring-boot-starter.svg)](https://jitpack.io/#akashgill3/datastar-spring-boot-starter)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.akashgill3/datastar-spring-boot-starter)](https://central.sonatype.com/artifact/io.github.akashgill3/datastar-spring-boot-starter)
 
 [Datastar](https://data-star.dev/) is a lightweight hypermedia framework for building everything from simple sites to
 real-time collaborative web apps.
@@ -17,13 +17,12 @@ directly from your Spring controllers.
 - **Fluent API**: Easily emit element patches, signal updates, and script executions using a minimal API with sensible
   defaults and functional configuration options.
 - **Spring Boot Autoconfiguration**: Zero-configuration setup for common use cases.
-- **Lifecycle Management**: Built-in tracking of concurrent connections and robust error handling.
 - **Asynchronous & Virtual Thread Friendly**: Designed to work seamlessly with Spring's async support and Java 21+
   virtual threads.
 
 ## Quick Start
 
-1. **Add the dependency** (see [Installation](#installation-using-jitpack) below).
+1. **Add the dependency** (see [Installation](#installation) below).
 2. **Create a Controller** that returns a `DatastarSseEmitter`.
 
 ```java
@@ -116,46 +115,28 @@ sseEmitter.consoleLog("Debugging info");
 sseEmitter.consoleError("Error message");
 ```
 
-## Installation (using JitPack)
+## Installation
 
 ### Maven
 
-Add the repository and dependency to your `pom.xml`:
+Add the dependency to your `pom.xml`:
 
 ```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-
 <dependency>
-<groupId>com.github.akashgill3</groupId>
-<artifactId>datastar-spring-boot-starter</artifactId>
-<version>0.2.0</version>
+    <groupId>io.github.akashgill3</groupId>
+    <artifactId>datastar-spring-boot-starter</artifactId>
+    <version>0.3.2</version>
+    <scope>compile</scope>
 </dependency>
 ```
 
 ### Gradle
 
-Add the repository to `settings.gradle`:
-
-```groovy
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
-}
-```
-
 And the dependency to `build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'com.github.akashgill3:datastar-spring-boot-starter:0.2.0'
+    implementation("io.github.akashgill3:datastar-spring-boot-starter:0.3.2")
 }
 ```
 
@@ -165,7 +146,6 @@ Configure behavior in your `application.yml` or `application.properties`:
 
 | Property                              | Default | Description                                                                 |
 |:--------------------------------------|:--------|:----------------------------------------------------------------------------|
-| `datastar.max-concurrent-connections` | `1000`  | Limits the number of active SSE connections to prevent resource exhaustion. |
 | `datastar.enable-logging`             | `false` | Enables detailed debug logging for every SSE event sent.                    |
 
 ## Requirements

@@ -14,17 +14,12 @@ import org.springframework.validation.annotation.Validated;
  * <p>Example configuration:
  *
  * <pre>
- * datastar.max-concurrent-connections=1000
  * datastar.enable-logging=false
  * </pre>
  *
- * @param maxConcurrentConnections the maximum number of concurrent SSE connections allowed
- *     (default: 1000)
  * @param enableLogging whether to enable logging (default: false)
  * @author Akash Gill
  */
 @Validated
 @ConfigurationProperties(prefix = "datastar")
-public record DatastarProperties(
-    @DefaultValue("1000") int maxConcurrentConnections,
-    @DefaultValue("false") boolean enableLogging) {}
+public record DatastarProperties(@DefaultValue("false") boolean enableLogging) {}
