@@ -71,7 +71,7 @@ public class Datastar {
   }
 
   /**
-   * Creates a new {@link DatastarSseEmitter} instance.
+   * Creates a new {@link DatastarSseEmitter} instance with default timeout of 60 seconds.
    *
    * @return a new {@link DatastarSseEmitter} instance ready for use
    */
@@ -80,6 +80,22 @@ public class Datastar {
 
     if (properties.enableLogging() && log.isDebugEnabled()) {
       log.debug("Created new SSE emitter");
+    }
+
+    return emitter;
+  }
+
+  /**
+   * Creates a new {@link DatastarSseEmitter} instance with a custom timeout.
+   *
+   * @param timeout the timeout in milliseconds, for indefinite timeout use Long.MAX_VALUE or -1
+   * @return a new {@link DatastarSseEmitter} instance ready for use
+   */
+  public DatastarSseEmitter createEmitter(long timeout) {
+    DatastarSseEmitter emitter = new DatastarSseEmitter(properties, timeout);
+
+    if (properties.enableLogging() && log.isDebugEnabled()) {
+      log.debug("Created new SSE emitter with timeout: {}ms", timeout);
     }
 
     return emitter;

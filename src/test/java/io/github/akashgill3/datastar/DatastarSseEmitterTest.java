@@ -36,6 +36,22 @@ class DatastarSseEmitterTest {
   }
 
   @Test
+  void constructor_withProperties_shouldUse60SecondDefaultTimeout() {
+    DatastarProperties properties = new DatastarProperties(false);
+    DatastarSseEmitter emitter = new DatastarSseEmitter(properties);
+    assertNotNull(emitter);
+    assertEquals(60_000L, emitter.getTimeout());
+  }
+
+  @Test
+  void constructor_withPropertiesAndTimeout_shouldUseCustomTimeout() {
+    DatastarProperties properties = new DatastarProperties(false);
+    DatastarSseEmitter emitter = new DatastarSseEmitter(properties, -1L);
+    assertNotNull(emitter);
+    assertEquals(-1L, emitter.getTimeout());
+  }
+
+  @Test
   void patchElements_shouldSendCorrectSseWireFormat_withDefaults() throws IOException {
     DatastarSseEmitter spyEmitter = spy(emitter);
     doNothing().when((ResponseBodyEmitter) spyEmitter).send(any(), any(MediaType.class));

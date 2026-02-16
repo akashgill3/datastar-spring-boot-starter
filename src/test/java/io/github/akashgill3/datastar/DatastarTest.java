@@ -9,6 +9,8 @@ import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -30,6 +32,14 @@ class DatastarTest {
   void createEmitter_shouldCreateEmitter() {
     DatastarSseEmitter emitter = datastar.createEmitter();
     assertNotNull(emitter);
+  }
+
+  @ParameterizedTest(name = "timeout={0}")
+  @ValueSource(longs = {0L, 30_000L, Long.MAX_VALUE, -1L})
+  void createEmitter_withTimeout_shouldCreateEmitter(long timeout) {
+    DatastarSseEmitter emitter = datastar.createEmitter(timeout);
+    assertNotNull(emitter);
+    assertEquals(timeout, emitter.getTimeout());
   }
 
   @Test
@@ -96,5 +106,5 @@ class DatastarTest {
     assertNotNull(datastar);
   }
 
-  public record TestSignals(String value) {}
+  record TestSignals(String value) {}
 }

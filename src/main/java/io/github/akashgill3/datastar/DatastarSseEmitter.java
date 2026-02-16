@@ -45,7 +45,11 @@ public class DatastarSseEmitter extends ResponseBodyEmitter {
   private final DatastarProperties properties;
 
   public DatastarSseEmitter(DatastarProperties properties) {
-    super();
+    this(properties, 60_000L); // 1 minute default timeout
+  }
+
+  public DatastarSseEmitter(DatastarProperties properties, long timeout) {
+    super(timeout);
     this.properties = properties;
   }
 

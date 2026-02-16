@@ -81,7 +81,7 @@ class DatastarAutoConfigurationTest {
   static class CustomDatastarConfiguration {
     @Bean
     @Primary
-    public Datastar customDatastar() {
+    Datastar customDatastar() {
       return new CustomDatastar();
     }
   }

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.3] - 16-02-2026
+
+### Added
+
+- Custom timeouts for emitters
+
+---
+
 ## [0.3.2] - 15-02-2026
 
 ### Added
